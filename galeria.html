@@ -1,0 +1,1322 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wendy González Víquez | Pedagoga y Artista Plástica</title>
+  
+  <!-- Fuente Moderna -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800;900&display=swap" rel="stylesheet">
+
+  <style>
+    /* VARIABLES Y ESTILOS BASE */
+    :root {
+      --bg-color: #050505;
+      --surface: #111111;
+      --surface-light: #1a1a1a;
+      --text-main: #f5f5f7;
+      --text-muted: #a1a1a6;
+      --neon-cyan: #00fada;
+      --neon-magenta: #ff007f;
+      --neon-purple: #7928ca;
+      --gradient-dynamic: linear-gradient(135deg, var(--neon-magenta), var(--neon-purple), var(--neon-cyan));
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      line-height: 1.7;
+      overflow-x: hidden;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+
+    .text-gradient {
+      background: var(--gradient-dynamic);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    /* --- LAYOUT PRINCIPAL: IZQUIERDA (CONTENIDO) Y DERECHA (CHAT EXPERTO) --- */
+    .app-container {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    .main-content {
+      flex: 1;
+      overflow-y: auto;
+      padding-bottom: 80px; /* Espacio para scroll suave */
+    }
+
+    /* --- SECCIÓN HERO (BIOGRAFÍA) --- */
+    .hero-section {
+      position: relative;
+      padding: 60px 40px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+
+    .hero-bg-glow {
+      position: absolute;
+      width: 700px;
+      height: 700px;
+      background: var(--gradient-dynamic);
+      filter: blur(150px);
+      opacity: 0.08;
+      border-radius: 50%;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .bio-container {
+      position: relative;
+      z-index: 1;
+      max-width: 900px;
+      background: rgba(17, 17, 17, 0.4);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 24px;
+      padding: 50px 60px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    }
+
+    .bio-header h1 {
+      font-size: 3.5rem;
+      font-weight: 900;
+      margin: 0 0 10px 0;
+      letter-spacing: -1px;
+    }
+
+    .bio-header h2 {
+      font-size: 1.1rem;
+      font-weight: 400;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 4px;
+      margin: 0 0 30px;
+    }
+
+    .bio-content {
+      font-size: 1.15rem;
+      color: #d1d1d6;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      text-align: left;
+    }
+
+    .highlight-text {
+      color: var(--neon-cyan);
+      font-weight: 600;
+    }
+
+    /* --- SECCIÓN DE GALERÍA (BARRAS HORIZONTALES) --- */
+    .gallery-section {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 20px 40px 60px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .section-title {
+      font-size: 2rem;
+      font-weight: 800;
+      margin-bottom: 40px;
+      text-align: left;
+    }
+
+    .art-bars-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 15px;
+      padding: 10px;
+    }
+
+    /* MINI-TARJETAS (BOTONES REDUCIDOS) */
+    .art-bar {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      background: var(--surface);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      overflow: hidden;
+      height: 200px; /* Tamaño reducido */
+      padding: 15px;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      cursor: pointer;
+      position: relative;
+    }
+
+    .art-bar:hover {
+      transform: translateY(-5px);
+      border-color: var(--neon-cyan);
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4), 0 0 15px rgba(0, 250, 218, 0.2);
+    }
+
+    .art-bar-img {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      background: var(--surface-light);
+      flex-shrink: 0;
+    }
+
+    .art-bar-img img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .art-bar-img::after { display: none; } /* Quitar el gradiente de barra */
+
+    .art-bar-content {
+      padding: 0;
+      width: 100%;
+    }
+
+    .art-bar-content h3 {
+      font-size: 0.95rem;
+      margin: 0 0 8px 0;
+      color: #fff;
+    }
+
+    .art-bar-content p {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      line-height: 1.3;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .art-bar-arrow {
+      position: absolute;
+      bottom: 10px;
+      right: 10px;
+      font-size: 1rem;
+      opacity: 0.5;
+    }
+
+    /* --- MODAL DE DETALLES DE ARTE --- */
+    .art-detail-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.9);
+      backdrop-filter: blur(10px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+      z-index: 2000;
+    }
+
+    .art-detail-modal.show {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .art-detail-content {
+      background: var(--surface);
+      width: 90%;
+      max-width: 800px;
+      max-height: 90vh;
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 20px;
+      padding: 30px;
+      overflow-y: auto;
+      position: relative;
+    }
+
+    .art-detail-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 30px;
+      margin-bottom: 25px;
+    }
+
+    @media (max-width: 700px) {
+      .art-detail-grid { grid-template-columns: 1fr; }
+    }
+
+    .art-detail-info h2 {
+      font-size: 2rem;
+      margin-top: 0;
+      background: var(--gradient-dynamic);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .art-images-quad {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .art-images-quad img {
+      width: 100%;
+      height: 120px;
+      object-fit: cover;
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.1);
+      transition: transform 0.3s ease;
+    }
+
+    .art-images-quad img:hover { transform: scale(1.05); }
+
+    .art-detail-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .btn-gemini-info, .btn-web-search {
+      color: white;
+      border: none;
+      padding: 14px 25px;
+      border-radius: 12px;
+      font-weight: bold;
+      cursor: pointer;
+      width: 100%;
+      font-size: 0.95rem;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .btn-gemini-info {
+      background: var(--gradient-dynamic);
+    }
+
+    .btn-web-search {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .btn-gemini-info:hover {
+      box-shadow: 0 0 25px rgba(0, 250, 218, 0.4);
+      transform: translateY(-2px);
+    }
+
+    .btn-web-search:hover {
+      background: rgba(255,255,255,0.1);
+      border-color: rgba(255,255,255,0.3);
+      transform: translateY(-2px);
+    }
+
+    .close-detail {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: none;
+      border: none;
+      color: white;
+      font-size: 2rem;
+      cursor: pointer;
+      opacity: 0.6;
+    }
+
+    /* --- PANEL LATERAL: CHAT COLABORATIVO (INTEGRADO GEMINI) --- */
+    .side-chat-panel {
+      width: 400px;
+      background: var(--surface-light);
+      border-left: 1px solid rgba(255,255,255,0.08);
+      display: flex;
+      flex-direction: column;
+      box-shadow: -10px 0 30px rgba(0,0,0,0.5);
+    }
+
+    .chat-panel-header {
+      padding: 20px;
+      background: var(--surface);
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .gemini-logo {
+      width: 32px;
+      height: 32px;
+      background: var(--gradient-dynamic);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      color: white;
+      font-size: 18px;
+    }
+
+    .chat-panel-title {
+      flex: 1;
+    }
+    
+    .chat-panel-title h3 {
+      margin: 0;
+      font-size: 1.1rem;
+      color: #fff;
+    }
+    
+    .chat-panel-title span {
+      font-size: 0.8rem;
+      color: var(--neon-cyan);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .status-pulse {
+      width: 6px;
+      height: 6px;
+      background: var(--neon-cyan);
+      border-radius: 50%;
+      animation: blink 1.5s infinite;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    .chat-panel-messages {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    /* Estilos de Mensajes (Colegas vs Gemini) */
+    .msg-bubble {
+      max-width: 85%;
+      padding: 12px 16px;
+      border-radius: 12px;
+      font-size: 0.95rem;
+      line-height: 1.5;
+      position: relative;
+    }
+
+    .msg-sender {
+      font-size: 0.75rem;
+      font-weight: bold;
+      margin-bottom: 4px;
+      opacity: 0.7;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* Mensaje de Colega/Compañero (Izquierda) */
+    .msg-collega {
+      align-self: flex-start;
+      background: #232328;
+      color: #eaeaea;
+      border-bottom-left-radius: 2px;
+    }
+    .msg-collega .msg-sender { color: #aaa; }
+
+    /* Mensaje de Usuario Local (Derecha) */
+    .msg-user {
+      align-self: flex-end;
+      background: #1e293b;
+      color: #f1f5f9;
+      border-bottom-right-radius: 2px;
+    }
+    .msg-user .msg-sender { color: #94a3b8; }
+
+    /* Mensaje IA Gemini (Brillante, Destacado) */
+    .msg-ai {
+      align-self: flex-start;
+      background: rgba(121, 40, 202, 0.15);
+      border: 1px solid rgba(121, 40, 202, 0.3);
+      color: #e2d9f3;
+      border-bottom-left-radius: 2px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+    .msg-ai .msg-sender { color: var(--neon-cyan); }
+
+    .chat-panel-input {
+      padding: 20px;
+      background: var(--surface);
+      border-top: 1px solid rgba(255,255,255,0.08);
+      display: flex;
+      gap: 10px;
+    }
+
+    .chat-input {
+      flex: 1;
+      background: #1a1a1e;
+      border: 1px solid rgba(255,255,255,0.1);
+      padding: 12px 16px;
+      border-radius: 8px;
+      color: white;
+      font-family: inherit;
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.3s;
+    }
+
+    .chat-input:focus {
+      border-color: var(--neon-purple);
+    }
+
+    .chat-send {
+      background: var(--gradient-dynamic);
+      border: none;
+      width: 45px;
+      border-radius: 8px;
+      color: white;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.2s;
+    }
+
+    .chat-send:active {
+      transform: scale(0.95);
+    }
+
+    /* --- WIDGET FLOTANTE DE CONTACTO (EL ORIGINAL, MANTENIDO) --- */
+    .contact-widget {
+      position: fixed;
+      bottom: 30px;
+      left: 30px; /* Movido a la izquierda para no estorbar el panel de chat */
+      z-index: 1000;
+    }
+
+    .contact-btn {
+      width: 55px;
+      height: 55px;
+      border-radius: 50%;
+      background: var(--surface-light);
+      border: 1px solid rgba(255,255,255,0.1);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+      transition: all 0.3s ease;
+    }
+
+    .contact-btn:hover {
+      background: var(--surface);
+      transform: scale(1.05);
+      border-color: var(--neon-cyan);
+    }
+
+    .contact-box {
+      position: absolute;
+      bottom: 70px;
+      left: 0;
+      width: 300px;
+      background: rgba(20, 20, 22, 0.95);
+      backdrop-filter: blur(15px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 18px;
+      box-shadow: 0 15px 40px rgba(0,0,0,0.8);
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(20px) scale(0.95);
+      transform-origin: bottom left;
+      transition: all 0.35s ease;
+    }
+
+    .contact-box.active {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateY(0) scale(1);
+    }
+
+    .contact-header {
+      padding: 15px 20px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 600;
+    }
+
+    .contact-close {
+      background: none; border: none; color: #aaa; cursor: pointer; font-size: 20px;
+    }
+
+    .contact-body { padding: 20px; font-size: 0.9rem; color: #ccc; line-height: 1.5; }
+
+    .email-btn {
+      display: block; width: 100%; padding: 12px 0; text-align: center;
+      background: transparent; color: var(--neon-cyan); text-decoration: none;
+      font-weight: bold; border: 1px solid var(--neon-cyan); border-radius: 8px;
+      transition: all 0.3s; margin-top: 15px;
+    }
+
+    .email-btn:hover { background: var(--neon-cyan); color: #000; box-shadow: 0 0 15px rgba(0,250,218,0.4); }
+
+    /* Scrollbar estilizada */
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: var(--bg-color); }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.3); }
+
+  </style>
+</head>
+<body>
+
+  <div class="app-container">
+    
+    <!-- CONTENIDO PRINCIPAL (IZQUIERDA) -->
+    <main class="main-content">
+      
+      <!-- HERO BIOGRAFÍA -->
+      <section class="hero-section">
+        <div class="hero-bg-glow"></div>
+        <div class="bio-container">
+          <header class="bio-header">
+            <h1 class="text-gradient">Wendy González Víquez</h1>
+            <h2>Pedagoga y Licenciada en Artes Plásticas</h2>
+          </header>
+          
+          <div class="bio-content">
+            <p>Graduada con honores académicos <em class="highlight-text">Cum Laude</em> por la Universidad Nacional (UNA). El rigor académico y la sensibilidad artística son pilares fundamentales para inspirar a mis estudiantes.</p>
+            
+            <p>Con más de 20 años de trayectoria en el MEP y plaza en propiedad en el <strong>Liceo Académico de Cariari</strong>, cultivo una pedagogía dinámica, adaptando el arte clásico y contemporáneo a las nuevas mentes creadoras.</p>
+
+            <p>Dirijo grupos de baile típico, conectando la formación integral con nuestras raíces costarricenses, lo que nos ha brindado múltiples premios. <strong style="color: #fff;">La excelencia también se baila y se moldea</strong>.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- GALERÍA HORIZONTAL -->
+      <section class="gallery-section">
+        <h3 class="section-title text-gradient">Disciplinas y Corrientes Visuales</h3>
+        
+        <div class="art-bars-container">
+          
+          <!-- Arte Clásico -->
+          <div class="art-bar selectable-art" data-tema="Arte Clásico">
+            <div class="art-bar-img" style="background: linear-gradient(135deg, #d4af37, #8b6508, #332100);">
+              <span style="font-size: 24px;">🏛️</span>
+            </div>
+            <div class="art-bar-content">
+              <h3>Arte Clásico</h3>
+              <p>Anatomía, luz y perfección de proporciones.</p>
+            </div>
+            <div class="art-bar-arrow">✨</div>
+          </div>
+
+          <!-- Arte Contemporáneo -->
+          <div class="art-bar selectable-art" data-tema="Arte Contemporáneo">
+            <div class="art-bar-img">
+              <img src="https://images.unsplash.com/photo-1531736275454-adc48d079ce9?q=80&w=200&auto=format&fit=crop" alt="Contemporáneo">
+            </div>
+            <div class="art-bar-content">
+              <h3>Arte Contemporáneo</h3>
+              <p>Ruptura, performance e instalaciones críticas.</p>
+            </div>
+            <div class="art-bar-arrow">✨</div>
+          </div>
+
+          <!-- Arte Pop -->
+          <div class="art-bar selectable-art" data-tema="Arte Pop">
+            <div class="art-bar-img">
+              <img src="https://images.unsplash.com/photo-1536924940846-227afb31e2a5?q=80&w=200&auto=format&fit=crop" alt="Pop">
+            </div>
+            <div class="art-bar-content">
+              <h3>Arte Pop</h3>
+              <p>Cultura de masas y colores vibrantes.</p>
+            </div>
+            <div class="art-bar-arrow">✨</div>
+          </div>
+
+          <!-- Arte Abstracto -->
+          <div class="art-bar selectable-art" data-tema="Arte Abstracto">
+            <div class="art-bar-img">
+              <img src="https://images.unsplash.com/photo-1541701494587-cb58502866ab?q=80&w=200&auto=format&fit=crop" alt="Abstracto">
+            </div>
+            <div class="art-bar-content">
+              <h3>Arte Abstracto</h3>
+              <p>Emoción pura sin figuras, liberación del trazo.</p>
+            </div>
+            <div class="art-bar-arrow">✨</div>
+          </div>
+
+          <!-- Escultura y Cerámica -->
+          <div class="art-bar selectable-art" data-tema="Escultura y Cerámica">
+            <div class="art-bar-img">
+              <img src="https://images.unsplash.com/photo-1610701596007-11502861dcfa?q=80&w=200&auto=format&fit=crop" alt="Cerámica">
+            </div>
+            <div class="art-bar-content">
+              <h3>Escultura y Cerámica</h3>
+              <p>Dominio del volumen y conexión con la tierra.</p>
+            </div>
+            <div class="art-bar-arrow">✨</div>
+          </div>
+
+          <!-- NUEVOS BOTONES INDIVIDUALES: HISTORIA DEL ARTE -->
+          
+          <div class="art-bar selectable-art" data-tema="Arte Rupestre">
+            <div class="art-bar-img" style="background: linear-gradient(135deg, #4e342e, #3e2723); display: flex; align-items: center; justify-content: center;">
+              <span style="font-size: 35px;">🦴</span>
+            </div>
+            <div class="art-bar-content">
+              <h3>Arte Rupestre</h3>
+              <p>El origen de la expresión humana en cavernas.</p>
+            </div>
+            <div class="art-bar-arrow">✨</div>
+          </div>
+
+          <div class="art-bar selectable-art" data-tema="Arte Egipcio">
+            <div class="art-bar-img" style="background: linear-gradient(135deg, #ffd600, #ffab00); display: flex; align-items: center; justify-content: center;">
+              <span style="font-size: 35px;">𓂀</span>
+            </div>
+            <div class="art-bar-content">
+              <h3>Arte Egipcio</h3>
+              <p>Eternidad, pirámides y jeroglíficos mágicos.</p>
+            </div>
+            <div class="art-bar-arrow">✨</div>
+          </div>
+
+          <div class="art-bar selectable-art" data-tema="Mesopotamia">
+            <div class="art-bar-img" style="background: linear-gradient(135deg, #795548, #4e342e); display: flex; align-items: center; justify-content: center;">
+              <span style="font-size: 35px;">🏺</span>
+            </div>
+            <div class="art-bar-content">
+              <h3>Mesopotamia</h3>
+              <p>Zigurats y la invención de la escritura cuneiforme.</p>
+            </div>
+            <div class="art-bar-arrow">✨</div>
+          </div>
+
+          <div class="art-bar selectable-art" data-tema="Grecia">
+            <div class="art-bar-img" style="background: linear-gradient(135deg, #2196f3, #0d47a1); display: flex; align-items: center; justify-content: center;">
+              <span style="font-size: 35px;">🏛️</span>
+            </div>
+            <div class="art-bar-content">
+              <h3>Grecia</h3>
+              <p>El ideal de belleza, armonía y proporciones humanas.</p>
+            </div>
+            <div class="art-bar-arrow">✨</div>
+          </div>
+
+          <div class="art-bar selectable-art" data-tema="Roma">
+            <div class="art-bar-img" style="background: linear-gradient(135deg, #b71c1c, #7f0000); display: flex; align-items: center; justify-content: center;">
+              <span style="font-size: 35px;">🏟️</span>
+            </div>
+            <div class="art-bar-content">
+              <h3>Roma</h3>
+              <p>Arquitectura monumental, ingeniería y realismo.</p>
+            </div>
+            <div class="art-bar-arrow">✨</div>
+          </div>
+
+          <div class="art-bar selectable-art" data-tema="China">
+            <div class="art-bar-img" style="background: linear-gradient(135deg, #d32f2f, #b71c1c); display: flex; align-items: center; justify-content: center;">
+              <span style="font-size: 35px;">🏮</span>
+            </div>
+            <div class="art-bar-content">
+              <h3>China</h3>
+              <p>Caligrafía y misticismo en el paisaje imperial.</p>
+            </div>
+            <div class="art-bar-arrow">✨</div>
+          </div>
+
+          <div class="art-bar selectable-art" data-tema="India">
+            <div class="art-bar-img" style="background: linear-gradient(135deg, #ff9800, #f57c00); display: flex; align-items: center; justify-content: center;">
+              <span style="font-size: 35px;">🕉️</span>
+            </div>
+            <div class="art-bar-content">
+              <h3>India</h3>
+              <p>Espiritualidad volcada en templos y simbolismos.</p>
+            </div>
+            <div class="art-bar-arrow">✨</div>
+          </div>
+
+          <div class="art-bar selectable-art" data-tema="Japón">
+            <div class="art-bar-img" style="background: linear-gradient(135deg, #f44336, #000); display: flex; align-items: center; justify-content: center;">
+              <span style="font-size: 35px;">⛩️</span>
+            </div>
+            <div class="art-bar-content">
+              <h3>Japón</h3>
+              <p>Grabados Ukiyo-e y la síntesis visual Zen.</p>
+            </div>
+            <div class="art-bar-arrow">✨</div>
+          </div>
+
+          <div class="art-bar selectable-art" data-tema="Gótico">
+            <div class="art-bar-img" style="background: linear-gradient(135deg, #455a64, #263238); display: flex; align-items: center; justify-content: center;">
+              <span style="font-size: 35px;">⛪</span>
+            </div>
+            <div class="art-bar-content">
+              <h3>Gótico</h3>
+              <p>Catedrales, luz divina y vitrales coloridos.</p>
+            </div>
+            <div class="art-bar-arrow">✨</div>
+          </div>
+
+          <div class="art-bar selectable-art" data-tema="Renacimiento">
+            <div class="art-bar-img" style="background: linear-gradient(135deg, #d4af37, #8b6508); display: flex; align-items: center; justify-content: center;">
+              <span style="font-size: 35px;">🎨</span>
+            </div>
+            <div class="art-bar-content">
+              <h3>Renacimiento</h3>
+              <p>El hombre como centro. Perspectiva y sfumato.</p>
+            </div>
+            <div class="art-bar-arrow">✨</div>
+          </div>
+
+          <div class="art-bar selectable-art" data-tema="Manierismo">
+            <div class="art-bar-img" style="background: linear-gradient(135deg, #7e57c2, #512da8); display: flex; align-items: center; justify-content: center;">
+              <span style="font-size: 35px;">🧬</span>
+            </div>
+            <div class="art-bar-content">
+              <h3>Manierismo</h3>
+              <p>Distorsión y artificio tras la perfección clásica.</p>
+            </div>
+            <div class="art-bar-arrow">✨</div>
+          </div>
+
+          <div class="art-bar selectable-art" data-tema="Barroco">
+            <div class="art-bar-img" style="background: linear-gradient(135deg, #3e2723, #000); display: flex; align-items: center; justify-content: center;">
+              <span style="font-size: 35px;">🕯️</span>
+            </div>
+            <div class="art-bar-content">
+              <h3>Barroco</h3>
+              <p>El drama del claroscuro y el movimiento intenso.</p>
+            </div>
+            <div class="art-bar-arrow">✨</div>
+          </div>
+
+          <div class="art-bar selectable-art" data-tema="Rococó">
+            <div class="art-bar-img" style="background: linear-gradient(135deg, #fce4ec, #f06292); display: flex; align-items: center; justify-content: center;">
+              <span style="font-size: 35px;">🐚</span>
+            </div>
+            <div class="art-bar-content">
+              <h3>Rococó</h3>
+              <p>Elegancia, decorativismo y colores pastel.</p>
+            </div>
+            <div class="art-bar-arrow">✨</div>
+          </div>
+
+          <div class="art-bar selectable-art" data-tema="Romanticismo">
+            <div class="art-bar-img" style="background: linear-gradient(135deg, #1a237e, #0d47a1); display: flex; align-items: center; justify-content: center;">
+              <span style="font-size: 35px;">⛈️</span>
+            </div>
+            <div class="art-bar-content">
+              <h3>Romanticismo</h3>
+              <p>Sentimiento, libertad y la lucha contra la razón.</p>
+            </div>
+            <div class="art-bar-arrow">✨</div>
+          </div>
+
+          <div class="art-bar selectable-art" data-tema="Impresionismo">
+            <div class="art-bar-img" style="background: linear-gradient(135deg, #e1f5fe, #0288d1); display: flex; align-items: center; justify-content: center;">
+              <span style="font-size: 35px;">🌅</span>
+            </div>
+            <div class="art-bar-content">
+              <h3>Impresionismo</h3>
+              <p>Luz al aire libre y pinceladas de color puro.</p>
+            </div>
+            <div class="art-bar-arrow">✨</div>
+          </div>
+
+          <div class="art-bar selectable-art" data-tema="Arte Siglo XX e Ismos">
+            <div class="art-bar-img" style="background: linear-gradient(135deg, #212121, #bc00dd); display: flex; align-items: center; justify-content: center;">
+              <span style="font-size: 35px;">🧩</span>
+            </div>
+            <div class="art-bar-content">
+              <h3>Siglo XX e Ismos</h3>
+              <p>La revolución total: Cubismo, Surrealismo y más.</p>
+            </div>
+            <div class="art-bar-arrow">✨</div>
+          </div>
+
+          <!-- Documento PDF MEP -->
+          <a href="programa_estudios_artes_plasticas_mep.pdf" target="_blank" style="text-decoration: none;">
+            <div class="art-bar" style="border-color: var(--neon-magenta); box-shadow: 0 0 15px rgba(255, 0, 127, 0.1);">
+              <div class="art-bar-img" style="background: var(--gradient-dynamic); display: flex; align-items: center; justify-content: center;">
+                <svg width="70" height="70" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                  <polyline points="14 2 14 8 20 8"></polyline>
+                  <line x1="16" y1="13" x2="8" y2="13"></line>
+                  <line x1="16" y1="17" x2="8" y2="17"></line>
+                  <polyline points="10 9 9 9 8 9"></polyline>
+                </svg>
+              </div>
+              <div class="art-bar-content">
+                <h3 style="color: var(--neon-magenta);">Programa de Estudios MEP</h3>
+                <p>Haz clic para leer el documento oficial del MEP para Artes Plásticas.</p>
+              </div>
+              <div class="art-bar-arrow" style="color: var(--neon-magenta);">📥</div>
+            </div>
+          </a>
+
+        <!-- Botón Generador de Planeamiento con IA -->
+        <div class="art-bar" id="openPlannerBtn" style="border-color: var(--neon-cyan); box-shadow: 0 0 20px rgba(0, 250, 218, 0.15); margin-top: 20px;">
+          <div class="art-bar-img" style="background: #0d1b2a; display: flex; align-items: center; justify-content: center; position: relative;">
+            <div style="position: absolute; inset: 0; background: var(--gradient-dynamic); opacity: 0.2;"></div>
+            <svg width="65" height="65" viewBox="0 0 24 24" fill="none" stroke="var(--neon-cyan)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="z-index: 1;">
+              <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+              <polygon points="13 2 13 9 20 9"></polygon>
+              <circle cx="12" cy="12" r="10"></circle>
+            </svg>
+            <div class="gemini-logo" style="position: absolute; bottom: 10px; right: 10px; width: 24px; height: 24px; font-size: 10px;">AI</div>
+          </div>
+          <div class="art-bar-content">
+            <h3 style="color: var(--neon-cyan);">Generador de Planeamientos IA</h3>
+            <p>Diseña clases creativas para secundaria basadas en el catálogo MEP con el formato oficial del 2026 usando la asistencia de Gemini.</p>
+          </div>
+          <div class="art-bar-arrow" style="color: var(--neon-cyan);">✨</div>
+        </div>
+
+        </div>
+      </section>
+    </main>
+
+    <!-- PANEL DE CHAT COLABORATIVO (DERECHA) -->
+    <aside class="side-chat-panel">
+      
+      <div class="chat-panel-header">
+        <div class="gemini-logo">AI</div>
+        <div class="chat-panel-title">
+          <h3>Sala Profesores de Arte</h3>
+          <span><div class="status-pulse"></div> Gemini Activo en Sala</span>
+        </div>
+      </div>
+
+      <div class="chat-panel-messages" id="chatMessages">
+        
+        <div class="msg-bubble msg-collega">
+          <div class="msg-sender">Carlos (Prof. Dibujo)</div>
+          ¡Hola Wendy! Excelente galería. ¿Algún consejo para introducir el arte abstracto a jóvenes de 7mo año sin que se frustren?
+        </div>
+
+        <div class="msg-bubble msg-user">
+          <div class="msg-sender">Wendy G.</div>
+          ¡Hola Carlos! Me gusta empezar con música. Que dibujen lo que escuchan con crayones antes de pasar a la pintura formal.
+        </div>
+
+      </div>
+
+      <div class="chat-panel-input">
+        <input type="text" id="chatInput" class="chat-input" placeholder="Escribe al equipo o a la IA..." autocomplete="off">
+        <button class="chat-send" id="btnSend">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="22" y1="2" x2="11" y2="13"></line>
+            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+          </svg>
+        </button>
+      </div>
+
+    </aside>
+
+  </div> <!-- Cierre App Container -->
+
+  <!-- WIDGET FLOTANTE DE CONTACTO DIRECTO (IZQUIERDA) -->
+  <div class="contact-widget">
+    <div class="contact-box" id="contactBox">
+      <div class="contact-header">
+        Buzón de Wendy <button class="contact-close" id="contactClose">&times;</button>
+      </div>
+      <div class="contact-body">
+        Si deseas conectar profesionalmente, invitaciones para grupos de baile típico o charlas pedagógicas, aquí puedes contactarme directo al mail.
+        <a href="mailto:wenalessa@gmail.com?subject=Contacto%20Pedagógico/Arte" class="email-btn">Enviar Email</a>
+      </div>
+    </div>
+    <button class="contact-btn" id="contactToggle" aria-label="Contacto">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+        <polyline points="22,6 12,13 2,6"></polyline>
+      </svg>
+    </button>
+  </div>
+
+  <!-- MODAL GENERADOR DE PLANEAMIENTOS -->
+  <div class="planner-modal" id="plannerModal">
+    <div class="planner-modal-content">
+      <div class="planner-header">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <div class="gemini-logo">AI</div>
+          <div>
+            <h3 style="margin: 0; font-size: 1.2rem; color: #fff;">Constructor de Planeamientos IA 2026</h3>
+            <span style="font-size: 0.8rem; color: var(--text-muted);">Sincronizado con Programa Estudios MEP</span>
+          </div>
+        </div>
+        <button class="close-planner" id="closePlannerBtn">&times;</button>
+      </div>
+      
+      <div class="planner-body">
+        <div class="planner-form">
+          <p style="margin-top: 0; color: #ccc;">Proporciona tu clave y los datos del planeamiento. Gemini estructurará la clase basándose en el MEP.</p>
+
+          <label class="planner-label">Clave API de Gemini</label>
+          <input type="password" id="plApiKey" class="planner-input" placeholder="Pega tu API Key aquí..." style="border-color: var(--neon-magenta);">
+          
+          <label class="planner-label">Nivel Educativo</label>
+          <select id="plNivel" class="planner-input">
+            <option value="7mo">Séptimo Año</option>
+            <option value="8vo">Octavo Año</option>
+            <option value="9no">Noveno Año</option>
+            <option value="10mo">Décimo Año</option>
+            <option value="11vo">Undécimo Año</option>
+          </select>
+
+          <label class="planner-label">Tema Extraído del MEP</label>
+          <input type="text" id="plTema" class="planner-input" placeholder="Ej: Teoría del Color, Corrientes Abstractas...">
+
+          <label class="planner-label">Instrucciones Especiales para la IA</label>
+          <textarea id="plExtra" class="planner-input" style="height: 80px; resize: none;" placeholder="Ej: Haz que la clase sea al aire libre, quiero evaluar con rúbrica, etc."></textarea>
+
+          <button id="btnGeneratePlan" class="btn-generate">
+            <span>✨ Generar Planeamiento MEP 2026</span>
+          </button>
+        </div>
+
+        <div class="planner-result-area" id="planResultArea">
+          <div class="planner-empty-state" id="planEmptyState">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 15px;">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+              <line x1="16" y1="13" x2="8" y2="13"></line>
+              <line x1="16" y1="17" x2="8" y2="17"></line>
+              <polyline points="10 9 9 9 8 9"></polyline>
+            </svg>
+            <p>Gemini estructurará el documento aquí, listo para revisión y aplicación en el aula.</p>
+          </div>
+          <div class="planner-loader" id="planLoader">
+            <div class="status-pulse" style="width: 15px; height: 15px;"></div>
+            <p>Gemini está analizando las directrices del MEP...</p>
+          </div>
+          <div class="planner-output" id="planOutput"></div>
+        </div>
+      </div>
+      <div class="planner-footer">
+        <a href="PLANEAMIENTO ARTES PLASTICAS SECUNDARIA IA - 2026.PDF" target="_blank" class="download-template-btn">
+          Ver Documento Modelo Base (PDF)
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <style>
+    /* Estilos del Modal del Planeador */
+    .planner-modal {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px);
+      z-index: 2000; display: flex; align-items: center; justify-content: center;
+      opacity: 0; pointer-events: none; transition: opacity 0.3s;
+    }
+    .planner-modal.show { opacity: 1; pointer-events: auto; }
+    
+    .planner-modal-content {
+      width: 90%; max-width: 1000px; height: 85vh; background: var(--surface);
+      border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; box-shadow: 0 30px 60px rgba(0,0,0,0.8);
+      display: flex; flex-direction: column; overflow: hidden; transform: translateY(30px); transition: transform 0.4s;
+    }
+    .planner-modal.show .planner-modal-content { transform: translateY(0); }
+
+    .planner-header { padding: 20px 30px; background: #151518; border-bottom: 1px solid rgba(255,255,255,0.08); display: flex; justify-content: space-between; align-items: center; }
+    .close-planner { background: none; border: none; color: #aaa; font-size: 28px; cursor: pointer; }
+    .close-planner:hover { color: #fff; }
+
+    .planner-body { flex: 1; display: flex; overflow: hidden; }
+    
+    .planner-form { width: 350px; padding: 30px; background: rgba(255,255,255,0.02); border-right: 1px solid rgba(255,255,255,0.08); overflow-y: auto; }
+    .planner-label { display: block; font-size: 0.85rem; color: var(--neon-cyan); margin-bottom: 8px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
+    .planner-input { width: 100%; background: #111; border: 1px solid rgba(255,255,255,0.1); color: #fff; padding: 12px; border-radius: 8px; margin-bottom: 25px; font-family: inherit; font-size: 0.95rem; }
+    .planner-input:focus { border-color: var(--neon-cyan); outline: none; }
+    
+    .btn-generate { width: 100%; padding: 15px; border-radius: 10px; border: none; background: var(--gradient-dynamic); color: white; font-weight: bold; font-size: 1rem; cursor: pointer; transition: transform 0.2s; }
+    .btn-generate:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(0, 250, 218, 0.3); }
+
+    .planner-result-area { flex: 1; padding: 30px; overflow-y: auto; position: relative; background: #0a0a0c; }
+    .planner-empty-state, .planner-loader { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; color: #666; }
+    .planner-loader { display: none; color: var(--neon-cyan); }
+    .planner-output { display: none; color: #e0e0e0; line-height: 1.6; }
+    
+    .plan-section { margin-bottom: 20px; padding: 20px; background: rgba(255,255,255,0.03); border-radius: 10px; border-left: 3px solid var(--neon-cyan); }
+    .plan-section h4 { margin: 0 0 10px 0; color: #fff; font-size: 1.1rem; }
+
+    .planner-footer { padding: 15px 30px; background: #151518; border-top: 1px solid rgba(255,255,255,0.08); text-align: right; }
+    .download-template-btn { display: inline-block; padding: 10px 20px; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: #ccc; text-decoration: none; font-size: 0.9rem; transition: all 0.2s; }
+    .download-template-btn:hover { background: rgba(255,255,255,0.1); color: #fff; border-color: #fff; }
+
+    @media (max-width: 800px) {
+      .planner-body { flex-direction: column; }
+      .planner-form { width: 100%; border-right: none; border-bottom: 1px solid rgba(255,255,255,0.08); }
+    }
+  </style>
+
+  <!-- MODAL DE DETALLES DE ARTE (Resumen + 4 Imágenes) -->
+  <div class="art-detail-modal" id="artDetailModal">
+    <div class="art-detail-content">
+      <button class="close-detail" id="closeDetail">&times;</button>
+      
+      <div class="art-detail-grid">
+        <div class="art-detail-info">
+          <h2 id="detailTitle" style="margin-bottom: 15px;">Título del Arte</h2>
+          <p id="detailDesc" style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.6; margin-bottom: 25px;">Descripción detallada aquí...</p>
+          <div class="art-detail-buttons">
+            <button class="btn-gemini-info" id="btnGeminiInfo">✨ Consultar a Gemini para más información</button>
+            <button class="btn-web-search" id="btnWebSearch">🌐 Buscar en la Web para más detalles</button>
+          </div>
+        </div>
+        
+        <div class="art-images-quad" id="detailImages">
+          <!-- 4 Imágenes cargadas por JS -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCRIPT PARA LÓGICA DEL CHAT SIMULADO CON IA -->
+  <script>
+    /* Lógica del Contacto Rápido */
+    const contactToggle = document.getElementById('contactToggle');
+    const contactBox = document.getElementById('contactBox');
+    const contactClose = document.getElementById('contactClose');
+
+    contactToggle.onclick = () => contactBox.classList.toggle('active');
+    contactClose.onclick = () => contactBox.classList.remove('active');
+
+    /* Lógica del Chat Colaborativo */
+    const chatInput = document.getElementById('chatInput');
+    const btnSend = document.getElementById('btnSend');
+    const chatMessages = document.getElementById('chatMessages');
+
+    function addMessage(text, type) {
+      const msgDiv = document.createElement('div');
+      msgDiv.className = `msg-bubble ${type === 'user' ? 'msg-user' : 'msg-ai'}`;
+      msgDiv.innerHTML = `<div class="msg-sender">${type === 'user' ? 'Tú / Profesor' : '✨ Gemini AI Experto'}</div>${text}`;
+      chatMessages.appendChild(msgDiv);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    const handleSend = () => {
+      const text = chatInput.value.trim();
+      if(!text) return;
+      addMessage(text, 'user');
+      chatInput.value = '';
+      setTimeout(() => {
+        addMessage("Como tu asistente experto, te sugiero integrar este tema con ejercicios prácticos de observación. ¿Quieres que redacte un objetivo específico para el MEP?", "ai");
+      }, 1000);
+    };
+
+    btnSend.onclick = handleSend;
+    chatInput.onkeypress = (e) => { if(e.key === 'Enter') handleSend(); };
+
+    // --- BASE DE DATOS DE ARTE (Resúmenes y 4 Imágenes por Estilo) ---
+    const artData = {
+      "Arte Clásico": {
+        desc: "Fundamento de la estética occidental, basado en el canon griego de belleza, proporción y equilibrio.",
+        imgs: ["https://images.unsplash.com/photo-1549887534-1541e9326642?q=80&w=300", "https://images.unsplash.com/photo-1554188248-986adbb73be4?q=80&w=300", "https://images.unsplash.com/photo-1513364776144-60967b0f800f?q=80&w=300", "https://images.unsplash.com/photo-1503152394-c571994fd373?q=80&w=300"]
+      },
+      "Arte Contemporáneo": {
+        desc: "Arte de nuestro tiempo que prioriza el concepto, la sociedad y el cuestionamiento de la realidad.",
+        imgs: ["https://images.unsplash.com/photo-1531736275454-adc48d079ce9?q=80&w=300", "https://images.unsplash.com/photo-1547891299-0143899f2431?q=80&w=300", "https://images.unsplash.com/photo-1547826039-bfc35e0f1ea8?q=80&w=300", "https://images.unsplash.com/photo-1515405299444-18c99946bb13?q=80&w=300"]
+      },
+      "Arte Pop": {
+        desc: "Glorificación de lo cotidiano y la cultura de masas con colores vibrantes y técnicas industriales.",
+        imgs: ["https://images.unsplash.com/photo-1536924940846-227afb31e2a5?q=80&w=300", "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=300", "https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?q=80&w=300", "https://images.unsplash.com/photo-1563089145-599997674d42?q=80&w=300"]
+      },
+      "Arte Abstracto": {
+        desc: "Lenguaje visual de formas y colores independiente de la figuración del mundo real.",
+        imgs: ["https://images.unsplash.com/photo-1541701494587-cb58502866ab?q=80&w=300", "https://images.unsplash.com/photo-1500462859194-883d162bb7ec?q=80&w=300", "https://images.unsplash.com/photo-1507646227500-4d389b023f1d?q=80&w=300", "https://images.unsplash.com/photo-1511242314352-094154130099?q=80&w=300"]
+      },
+      "Escultura y Cerámica": {
+        desc: "Dominio del volumen y la materia en tres dimensiones, conectando al artista con la tierra.",
+        imgs: ["https://images.unsplash.com/photo-1610701596007-11502861dcfa?q=80&w=300", "https://images.unsplash.com/photo-1578321272176-b7bbc0679853?q=80&w=300", "https://images.unsplash.com/photo-1569336415962-a4bd9f6dfc0f?q=80&w=300", "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?q=80&w=300"]
+      },
+      "Arte Rupestre": {
+        desc: "Primeras marcas de la humanidad, narrando la conexión mágica y espiritual del hombre primitivo.",
+        imgs: ["https://images.unsplash.com/photo-1628153400262-127926e83896?q=80&w=300", "https://images.unsplash.com/photo-1621252179027-94459d278660?q=80&w=300", "https://images.unsplash.com/photo-1518709766631-a6a7f45921c3?q=80&w=300", "https://images.unsplash.com/photo-1444464666168-49d633b867ad?q=80&w=300"]
+      },
+      "Arte Egipcio": {
+        desc: "Búsqueda del orden y la eternidad para servir a dioses y faraones a través de la simetría.",
+        imgs: ["https://images.unsplash.com/photo-1539635278303-d4002c07eae3?q=80&w=300", "https://images.unsplash.com/photo-1503177119275-0aa32b3a9368?q=80&w=300", "https://images.unsplash.com/photo-1523438097201-51217f369e51?q=80&w=300", "https://images.unsplash.com/photo-1504198453319-5ce911baf2ef?q=80&w=300"]
+      },
+      "Mesopotamia": {
+        desc: "Cuna de la civilización y la arquitectura monumental como los zigurats y relieves épicos.",
+        imgs: ["https://images.unsplash.com/photo-1543859618-6395b6a374fc?q=80&w=300", "https://images.unsplash.com/photo-1599140849279-1014532882fe?q=80&w=300", "https://images.unsplash.com/photo-1519631128182-4438c7ef89b0?q=80&w=300", "https://images.unsplash.com/photo-1533105079780-92b9be482077?q=80&w=300"]
+      },
+      "Grecia": {
+        desc: "El ideal de belleza, armonía y proporciones humanas que cimentó la cultura de occidente.",
+        imgs: ["https://images.unsplash.com/photo-1549887534-1541e9326642?q=80&w=300", "https://images.unsplash.com/photo-1550252112-7065983758a0?q=80&w=300", "https://images.unsplash.com/photo-1503152394-c571994fd373?q=80&w=300", "https://images.unsplash.com/photo-1505506819641-4ad45cc86297?q=80&w=300"]
+      },
+      "Roma": {
+        desc: "Ingeniería monumental y realismo pragmático puesto al servicio del imperio y la gloria civil.",
+        imgs: ["https://images.unsplash.com/photo-1552832230-c0197dd311b5?q=80&w=300", "https://images.unsplash.com/photo-1515542641795-85ed3b3bc883?q=80&w=300", "https://images.unsplash.com/photo-1529260830199-42c24126f198?q=80&w=300", "https://images.unsplash.com/photo-1525874684015-58379d421a52?q=80&w=300"]
+      },
+      "China": {
+        desc: "Sutil danza del pincel y la tinta que conecta el vacío espiritual con la energía del paisaje.",
+        imgs: ["https://images.unsplash.com/photo-1529921879218-f99546d03a11?q=80&w=300", "https://images.unsplash.com/photo-1508804185872-d7badad00f7d?q=80&w=300", "https://images.unsplash.com/photo-1523733566160-f4ad1c4bf61c?q=80&w=300", "https://images.unsplash.com/photo-1534067783941-51c9c23ecefd?q=80&w=300"]
+      },
+      "India": {
+        desc: "Exuberancia espiritual grabada en piedra, celebrando deidades, movimiento y color infinito.",
+        imgs: ["https://images.unsplash.com/photo-1524492707947-28a0ff99d1d0?q=80&w=300", "https://images.unsplash.com/photo-1514222134-b57cbb8ce073?q=80&w=300", "https://images.unsplash.com/photo-1473163928189-3f40e1b53cb1?q=80&w=300", "https://images.unsplash.com/photo-1526715469105-d6a59b207127?q=80&w=300"]
+      },
+      "Japón": {
+        desc: "Minimalismo Zen y elegancia narrativa que influyó profundamente en el arte moderno occidental.",
+        imgs: ["https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?q=80&w=300", "https://images.unsplash.com/photo-1528164344705-47542687000d?q=80&w=300", "https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?q=80&w=300", "https://images.unsplash.com/photo-1490730141103-6cac27aaab94?q=80&w=300"]
+      },
+      "Gótico": {
+        desc: "Templos de luz con catedrales elevadas y vitrales que transforman la fe en color celestial.",
+        imgs: ["https://images.unsplash.com/photo-1481277542470-605612bd2d61?q=80&w=300", "https://images.unsplash.com/photo-1545193673-b30528690656?q=80&w=300", "https://images.unsplash.com/photo-1517713982677-4b66332f98de?q=80&w=300", "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?q=80&w=300"]
+      },
+      "Renacimiento": {
+        desc: "Despertar humanista que Redescubrió la perspectiva y la ciencia para capturar la realidad.",
+        imgs: ["https://images.unsplash.com/photo-1513364776144-60967b0f800f?q=80&w=300", "https://images.unsplash.com/photo-1605721911519-3dfeb3be25e7?q=80&w=300", "https://images.unsplash.com/photo-1550252112-7065983758a0?q=80&w=300", "https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?q=80&w=300"]
+      },
+      "Manierismo": {
+        desc: "Sofisticación y tensión que rompe las reglas clásicas para buscar una belleza más extraña.",
+        imgs: ["https://images.unsplash.com/photo-1576016770956-debb63d92058?q=80&w=300", "https://images.unsplash.com/photo-1541185933-ef5d8ed016c2?q=80&w=300", "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=300", "https://images.unsplash.com/photo-1506744038136-46273834b3fb?q=80&w=300"]
+      },
+      "Barroco": {
+        desc: "Teatralidad y claroscuro intenso creado para conmover profundamente a través del drama visual.",
+        imgs: ["https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?q=80&w=300", "https://images.unsplash.com/photo-1547891299-0143899f2431?q=80&w=300", "https://images.unsplash.com/photo-1506744038136-46273834b3fb?q=80&w=300", "https://images.unsplash.com/photo-1470770841072-f978cf4d019e?q=80&w=300"]
+      },
+      "Rococó": {
+        desc: "Alegre vivir aristocrático lleno de curvas galantes, colores pastel y decoración juguetona.",
+        imgs: ["https://images.unsplash.com/photo-1577083552431-6e5fd01988ec?q=80&w=300", "https://images.unsplash.com/photo-1527264935190-1401c51b5bbc?q=80&w=300", "https://images.unsplash.com/photo-1514894780063-5878f43cbf44?q=80&w=300", "https://images.unsplash.com/photo-1541185933-ef5d8ed016c2?q=80&w=300"]
+      },
+      "Romanticismo": {
+        desc: "Sublime fuerza de la naturaleza y pasión desbordada que exalta el sentimiento individual.",
+        imgs: ["https://images.unsplash.com/photo-1506744038136-46273834b3fb?q=80&w=300", "https://images.unsplash.com/photo-1470770841072-f978cf4d019e?q=80&w=300", "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=300", "https://images.unsplash.com/photo-1520121401995-928cd50d4e27?q=80&w=300"]
+      },
+      "Impresionismo": {
+        desc: "Captura de la luz fugaz a través de pinceladas sueltas que abandonan la línea tradicional.",
+        imgs: ["https://images.unsplash.com/photo-1578321272176-b7bbc0679853?q=80&w=300", "https://images.unsplash.com/photo-1541185933-ef5d8ed016c2?q=80&w=300", "https://images.unsplash.com/photo-1520121401995-928cd50d4e27?q=80&w=300", "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?q=80&w=300"]
+      },
+      "Arte Siglo XX e Ismos": {
+        desc: "La gran ruptura de la mirada. Periodo de constante experimentación y vanguardias revolucionarias.",
+        imgs: ["https://images.unsplash.com/photo-1515405299444-18c99946bb13?q=80&w=300", "https://images.unsplash.com/photo-1549490349-8643362247b5?q=80&w=300", "https://images.unsplash.com/photo-1574169208507-84376144848b?q=80&w=300", "https://images.unsplash.com/photo-1563089145-599997674d42?q=80&w=300"]
+      }
+    };
+
+    // --- MANEJO DE MODALES ---
+    const artDetailModal = document.getElementById('artDetailModal');
+    const plannerModal = document.getElementById('plannerModal');
+    let currentSelectedTheme = "";
+
+    document.querySelectorAll('.selectable-art').forEach(card => {
+      card.onclick = () => {
+        const tema = card.getAttribute('data-tema');
+        const data = artData[tema];
+        if(data) {
+          currentSelectedTheme = tema;
+          document.getElementById('detailTitle').innerText = tema;
+          document.getElementById('detailDesc').innerText = data.desc;
+          document.getElementById('detailImages').innerHTML = data.imgs.map(u => `<img src="${u}" alt="${tema}">`).join('');
+          artDetailModal.classList.add('show');
+        } else {
+          document.getElementById('plTema').value = tema;
+          plannerModal.classList.add('show');
+        }
+      };
+    });
+
+    document.getElementById('closeDetail').onclick = () => artDetailModal.classList.remove('show');
+    document.getElementById('btnGeminiInfo').onclick = () => {
+      artDetailModal.classList.remove('show');
+      // Abrir el chat si está cerrado
+      contactBox.classList.add('active');
+      // Pre-rellenar y enviar mensaje
+      chatInput.value = `Hola Gemini, ¿podrías darme más información detallada sobre el ${currentSelectedTheme}? Me gustaría conocer ejemplos, contexto histórico y curiosidades.`;
+      handleSend();
+    };
+
+    document.getElementById('btnWebSearch').onclick = () => {
+      const query = encodeURIComponent(`información sobre ${currentSelectedTheme} historia y características principales`);
+      window.open(`https://www.google.com/search?q=${query}`, '_blank');
+    };
+
+    window.onclick = (e) => {
+      if(e.target === artDetailModal) artDetailModal.classList.remove('show');
+      if(e.target === plannerModal) plannerModal.classList.remove('show');
+    };
+
+    // --- LÓGICA DEL GENERADOR ---
+    const btnGeneratePlan = document.getElementById('btnGeneratePlan');
+    const planLoader = document.getElementById('planLoader');
+    const planEmptyState = document.getElementById('planEmptyState');
+    const planOutput = document.getElementById('planOutput');
+
+    document.getElementById('openPlannerBtn').onclick = () => {
+      document.getElementById('plTema').value = "";
+      plannerModal.classList.add('show');
+    };
+    document.getElementById('closePlannerBtn').onclick = () => plannerModal.classList.remove('show');
+
+    btnGeneratePlan.onclick = async () => {
+      const apiKey = document.getElementById('plApiKey').value.trim();
+      const nivel = document.getElementById('plNivel').value;
+      const tema = document.getElementById('plTema').value.trim();
+      const extra = document.getElementById('plExtra').value.trim();
+      
+      if(!apiKey || !tema) { alert("⚠️ Completa API y Tema"); return; }
+      
+      planEmptyState.style.display = 'none';
+      planOutput.style.display = 'none';
+      planLoader.style.display = 'flex';
+
+      try {
+        const resp = await fetch('/api/generate-plan', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ apiKey, nivel, tema, instruccionesExtra: extra })
+        });
+        const d = await resp.json();
+        if(resp.ok) {
+          planLoader.style.display = 'none';
+          planOutput.style.display = 'block';
+          const p = d.plan;
+          const matHtml = p.mediacion.materiales.map(m => `<li>${m}</li>`).join('');
+          planOutput.innerHTML = `
+            <div style="background:white; color:black; padding:20px; border-radius:8px; font-family:Arial;">
+              <h3 style="margin-top:0;">Planeamiento: ${tema}</h3>
+              <p><strong>Nivel:</strong> ${nivel}</p>
+              <div style="margin-top:15px; border-top:1px solid #ddd; padding-top:15px;">
+                <strong>Aprendizajes:</strong> ${p.aprendizajes.join(', ')}<br><br>
+                <strong>Materiales:</strong> ${p.mediacion.materiales.join(', ')}<br><br>
+                <strong>Estrategia destacada:</strong> ${p.mediacion.exploracion}
+              </div>
+              <div style="margin-top:20px; text-align:center;">
+                <a href="${d.pdfUrl}" target="_blank" style="background:#2e7d32; color:white; padding:10px 20px; text-decoration:none; border-radius:5px; font-weight:bold;">📥 Descargar PDF Completo (Formato MEP)</a>
+              </div>
+            </div>
+          `;
+        } else alert("Error: " + d.error);
+      } catch(e) { 
+        alert("Error de conexión"); 
+        planLoader.style.display = 'none';
+      }
+    };
+
+  </script>
+</body>
+</html>

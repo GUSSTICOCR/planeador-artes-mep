@@ -1,0 +1,17 @@
+{
+  "name": "galeria-wendy-mep",
+  "version": "1.0.0",
+  "description": "API Backend para Generador de Planeamientos MEP con Gemini IA",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "@google/generative-ai": "^0.24.1",
+    "cors": "^2.8.6",
+    "express": "^4.22.1",
+    "pdf-parse": "^1.1.4",
+    "pdfkit": "^0.15.2"
+  }
+}
