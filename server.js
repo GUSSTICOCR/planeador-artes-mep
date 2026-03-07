@@ -196,11 +196,9 @@ app.post('/api/generate-plan', async (req, res) => {
     res.status(500).json({ error: 'Error en generación estructurada.', details: error.message });
   }
 });
-const PORT = 3000;
-app.listen(PORT, '127.0.0.1', () => {
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`\n======================================================`);
-  console.log(`🚀 SERVIDOR MEP-IA INICIADO CORRECTAMENTE EN IPv4`);
+  console.log(`🚀 SERVIDOR MEP-IA INICIADO EN EL PUERTO: ${PORT}`);
   console.log(`======================================================`);
-  console.log(`🔗 Por favor, abre en tu navegador: http://127.0.0.1:${PORT}/galeria.html`);
-  console.log(`======================================================\n`);
 });
