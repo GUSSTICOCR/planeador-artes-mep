@@ -17,6 +17,39 @@ app.use(express.json());
 // Servir archivos estáticos
 app.use(express.static(__dirname));
 
+// --- HELPER PARA INTENTAR MODELOS (Evita errores 404 de región) ---
+async function generateWithFallback(genAI, prompt, isJson = false) {
+  const models = ["gemini-1.5-flash", "gemini-1.5-pro", "gemini-pro"];
+  let lastError = null;
+
+  for (const modelName of models) {
+    try {
+      console.log(`Intentando generación con: ${modelName}...`);
+      const model = genAI.getGenerativeModel({ model: modelName });
+      
+      const result = await model.generateContent(prompt);
+      const text = result.response.text();
+      
+      if (isJson) {
+        let cleanJson = text.trim();
+        if (cleanJson.includes('```')) {
+          cleanJson = cleanJson.split('```')[1].replace(/^json/, '').trim();
+        }
+        return JSON.parse(cleanJson);
+      }
+      return text;
+    } catch (err) {
+      console.error(`Fallo con ${modelName}:`, err.message);
+      lastError = err;
+      // Si el error no es "Not Found (404)", probablemente sea de API Key o cuota, así que no seguimos probando otros modelos
+      if (!err.message.toLowerCase().includes('404') && !err.message.toLowerCase().includes('not found')) {
+        break;
+      }
+    }
+  }
+  throw lastError;
+}
+
 let mepContentCache = null;
 
 async function loadMEPContent() {
@@ -43,8 +76,6 @@ app.post('/api/generate-plan', async (req, res) => {
     }
 
     const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" }); 
-
     const mepText = await loadMEPContent();
 
     const systemInstruction = `Eres un experto pedagogo del MEP Costa Rica. Crea un planeamiento de Artes Plásticas basado en el programa oficial. 
@@ -75,18 +106,10 @@ app.post('/api/generate-plan', async (req, res) => {
     Input docente: ${instruccionesExtra || 'Ninguna'}.
     Responde SOLO el JSON.`;
 
-    console.log(`Pidiendo a Gemini 2.x: Planeamiento Estructurado para ${nivel} - ${tema}...`);
+    console.log(`Pidiendo a Gemini: Planeamiento Estructurado para ${nivel} - ${tema}...`);
     
-    const result = await model.generateContent(promptText);
-    const responseText = result.response.text();
-    
-    // Limpieza de JSON
-    let cleanJson = responseText.trim();
-    if (cleanJson.includes('```')) {
-      cleanJson = cleanJson.split('```')[1].replace(/^json/, '').trim();
-    }
-    
-    const plan = JSON.parse(cleanJson);
+    // USAR HELPER CON FALLBACK
+    const plan = await generateWithFallback(genAI, promptText, true);
 
     // --- GENERACIÓN DE PDF REPLICA WORD MEP ---
     const pdfFileName = `Planeamiento_Oficial_${nivel}_${tema.replace(/\s+/g, '_')}.pdf`;
@@ -203,36 +226,22 @@ app.post('/api/generate-plan', async (req, res) => {
 
 // --- NUEVO: ENDPOINT PARA EL CHAT DINÁMICO ---
 app.post('/api/chat', async (req, res) => {
-  console.log('--- NUEVA SOLICITUD DE CHAT RECIBIDA (Detectado por logs) ---');
+  console.log('--- NUEVA SOLICITUD DE CHAT RECIBIDA ---');
   try {
     const { mensaje, apiKey } = req.body;
     if (!mensaje || !apiKey) return res.status(400).json({ error: 'Faltan datos.' });
 
     const genAI = new GoogleGenerativeAI(apiKey);
     
-    // Lista de modelos a intentar en orden de preferencia
-    const modelsToTry = ["gemini-1.5-flash", "gemini-pro"];
-    let lastError = null;
+    const prompt = `Eres un asistente experto para profesores de Artes Plásticas. 
+    Responde de forma profesional, creativa y pedagógica. 
+    Pregunta: "${mensaje}"`;
 
-    for (const modelName of modelsToTry) {
-      try {
-        console.log(`Intentando con modelo: ${modelName}...`);
-        const model = genAI.getGenerativeModel({ model: modelName });
-        const result = await model.generateContent(`Eres un asistente pedagógico de artes. Pregunta: ${mensaje}`);
-        const text = result.response.text();
-        console.log(`¡Éxito con ${modelName}!`);
-        return res.json({ respuesta: text });
-      } catch (err) {
-        console.error(`Fallo con ${modelName}:`, err.message);
-        lastError = err;
-        if (!err.message.includes('404')) break; // Si no es 404, el error es otro (ej. API Key)
-      }
-    }
-
-    throw lastError;
+    const text = await generateWithFallback(genAI, prompt, false);
+    res.json({ respuesta: text });
   } catch (error) {
     console.error('ERROR FINAL EN CHAT:', error);
-    res.status(500).json({ error: 'No se pudo conectar con la IA.', details: error.message });
+    res.status(500).json({ error: 'No se pudo generar respuesta con la IA.', details: error.message });
   }
 });
 const PORT = process.env.PORT || 3000;
