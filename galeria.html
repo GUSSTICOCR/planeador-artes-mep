@@ -591,24 +591,16 @@
     }
   </style>
 
-  <!-- MODAL DE DETALLES DE ARTE (Resumen + 4 Imágenes) -->
+  <!-- MODAL DE DETALLES DE ARTE (Resumen + 1 Imagen) -->
   <div class="art-detail-modal" id="artDetailModal">
     <div class="art-detail-content">
-      <button class="close-detail" id="closeDetail">&times;</button>
+      <button class="close-detail" id="closeDetail" style="top:25px; right:25px;">&times;</button>
       
-      <div class="art-detail-grid">
-        <div class="art-detail-info">
-          <h2 id="detailTitle" style="margin-bottom: 15px;">Título del Arte</h2>
-          <p id="detailDesc" style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.6; margin-bottom: 25px;">Descripción detallada aquí...</p>
-          <div class="art-detail-buttons">
-            <button class="btn-gemini-info" id="btnGeminiInfo">✨ Consultar a Gemini para más información</button>
-            <button class="btn-web-search" id="btnWebSearch">🌐 Buscar en la Web para más detalles</button>
-          </div>
-        </div>
-        
-        <div class="art-images-quad" id="detailImages">
-          <!-- 4 Imágenes cargadas por JS -->
-        </div>
+      <div class="art-detail-info">
+        <h2 id="detailTitle">Título del Arte</h2>
+        <img id="detailSingleImage" class="single-art-img" src="" alt="Arte Principal">
+        <p id="detailDesc" style="color: var(--text-muted); font-size: 1rem; line-height: 1.6; margin-bottom: 30px;">Descripción detallada aquí...</p>
+        <button class="btn-web-search" id="btnWebSearch" style="background: var(--gradient-dynamic); border:none; color:white; font-size: 1rem;">🌐 Buscar en la Web para más detalles</button>
       </div>
     </div>
   </div>
@@ -627,88 +619,88 @@
     // --- BASE DE DATOS DE ARTE (Resúmenes y 4 Imágenes por Estilo) ---
     const artData = {
       "Arte Clásico": {
-        desc: "Fundamento de la estética occidental, basado en el canon griego de belleza, proporción y equilibrio.",
-        imgs: ["https://images.unsplash.com/photo-1549887534-1541e9326642?q=80&w=300", "https://images.unsplash.com/photo-1554188248-986adbb73be4?q=80&w=300", "https://images.unsplash.com/photo-1513364776144-60967b0f800f?q=80&w=300", "https://images.unsplash.com/photo-1503152394-c571994fd373?q=80&w=300"]
+        desc: "Fundamento de la estética occidental. Canon griego de belleza, proporción y equilibrio.",
+        img: "https://images.unsplash.com/photo-1549887534-1541e9326642?q=80&w=600"
       },
       "Arte Contemporáneo": {
-        desc: "Arte de nuestro tiempo que prioriza el concepto, la sociedad y el cuestionamiento de la realidad.",
-        imgs: ["https://images.unsplash.com/photo-1531736275454-adc48d079ce9?q=80&w=300", "https://images.unsplash.com/photo-1547891299-0143899f2431?q=80&w=300", "https://images.unsplash.com/photo-1547826039-bfc35e0f1ea8?q=80&w=300", "https://images.unsplash.com/photo-1515405299444-18c99946bb13?q=80&w=300"]
+        desc: "Arte de nuestro tiempo. Prioriza el concepto, la sociedad y el cuestionamiento crítico.",
+        img: "https://images.unsplash.com/photo-1531736275454-adc48d079ce9?q=80&w=600"
       },
       "Arte Pop": {
-        desc: "Glorificación de lo cotidiano y la cultura de masas con colores vibrantes y técnicas industriales.",
-        imgs: ["https://images.unsplash.com/photo-1536924940846-227afb31e2a5?q=80&w=300", "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=300", "https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?q=80&w=300", "https://images.unsplash.com/photo-1563089145-599997674d42?q=80&w=300"]
+        desc: "Glorificación de lo cotidiano y cultura de masas con colores vibrantes e industriales.",
+        img: "https://images.unsplash.com/photo-1536924940846-227afb31e2a5?q=80&w=600"
       },
       "Arte Abstracto": {
         desc: "Lenguaje visual de formas y colores independiente de la figuración del mundo real.",
-        imgs: ["https://images.unsplash.com/photo-1541701494587-cb58502866ab?q=80&w=300", "https://images.unsplash.com/photo-1500462859194-883d162bb7ec?q=80&w=300", "https://images.unsplash.com/photo-1507646227500-4d389b023f1d?q=80&w=300", "https://images.unsplash.com/photo-1511242314352-094154130099?q=80&w=300"]
+        img: "https://images.unsplash.com/photo-1541701494587-cb58502866ab?q=80&w=600"
       },
       "Escultura y Cerámica": {
-        desc: "Dominio del volumen y la materia en tres dimensiones, conectando al artista con la tierra.",
-        imgs: ["https://images.unsplash.com/photo-1610701596007-11502861dcfa?q=80&w=300", "https://images.unsplash.com/photo-1578321272176-b7bbc0679853?q=80&w=300", "https://images.unsplash.com/photo-1569336415962-a4bd9f6dfc0f?q=80&w=300", "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?q=80&w=300"]
+        desc: "Dominio del volumen y la materia en tres dimensiones, conectando con la tierra.",
+        img: "https://images.unsplash.com/photo-1610701596007-11502861dcfa?q=80&w=600"
       },
       "Arte Rupestre": {
-        desc: "Primeras marcas de la humanidad, narrando la conexión mágica y espiritual del hombre primitivo.",
-        imgs: ["https://images.unsplash.com/photo-1628153400262-127926e83896?q=80&w=300", "https://images.unsplash.com/photo-1621252179027-94459d278660?q=80&w=300", "https://images.unsplash.com/photo-1518709766631-a6a7f45921c3?q=80&w=300", "https://images.unsplash.com/photo-1444464666168-49d633b867ad?q=80&w=300"]
+        desc: "Primeras marcas de la humanidad, narrando la conexión mágica primitiva.",
+        img: "https://images.unsplash.com/photo-1518709766631-a6a7f45921c3?q=80&w=600"
       },
       "Arte Egipcio": {
-        desc: "Búsqueda del orden y la eternidad para servir a dioses y faraones a través de la simetría.",
-        imgs: ["https://images.unsplash.com/photo-1539635278303-d4002c07eae3?q=80&w=300", "https://images.unsplash.com/photo-1503177119275-0aa32b3a9368?q=80&w=300", "https://images.unsplash.com/photo-1523438097201-51217f369e51?q=80&w=300", "https://images.unsplash.com/photo-1504198453319-5ce911baf2ef?q=80&w=300"]
+        desc: "Búsqueda del orden y la eternidad para servir a dioses y faraones con simetría.",
+        img: "https://images.unsplash.com/photo-1539635278303-d4002c07eae3?q=80&w=600"
       },
       "Mesopotamia": {
-        desc: "Cuna de la civilización y la arquitectura monumental como los zigurats y relieves épicos.",
-        imgs: ["https://images.unsplash.com/photo-1543859618-6395b6a374fc?q=80&w=300", "https://images.unsplash.com/photo-1599140849279-1014532882fe?q=80&w=300", "https://images.unsplash.com/photo-1519631128182-4438c7ef89b0?q=80&w=300", "https://images.unsplash.com/photo-1533105079780-92b9be482077?q=80&w=300"]
+        desc: "Cuna de la civilización y arquitectura monumental como zigurats y relieves épicos.",
+        img: "https://images.unsplash.com/photo-1599140849279-1014532882fe?q=80&w=600"
       },
       "Grecia": {
-        desc: "El ideal de belleza, armonía y proporciones humanas que cimentó la cultura de occidente.",
-        imgs: ["https://images.unsplash.com/photo-1549887534-1541e9326642?q=80&w=300", "https://images.unsplash.com/photo-1550252112-7065983758a0?q=80&w=300", "https://images.unsplash.com/photo-1503152394-c571994fd373?q=80&w=300", "https://images.unsplash.com/photo-1505506819641-4ad45cc86297?q=80&w=300"]
+        desc: "Ideal de belleza y armonía humana que cimentó la cultura occidental.",
+        img: "https://images.unsplash.com/photo-1550252112-7065983758a0?q=80&w=600"
       },
       "Roma": {
-        desc: "Ingeniería monumental y realismo pragmático puesto al servicio del imperio y la gloria civil.",
-        imgs: ["https://images.unsplash.com/photo-1552832230-c0197dd311b5?q=80&w=300", "https://images.unsplash.com/photo-1515542641795-85ed3b3bc883?q=80&w=300", "https://images.unsplash.com/photo-1529260830199-42c24126f198?q=80&w=300", "https://images.unsplash.com/photo-1525874684015-58379d421a52?q=80&w=300"]
+        desc: "Ingeniería monumental y realismo práctico al servicio del imperio y gloria civil.",
+        img: "https://images.unsplash.com/photo-1515542641795-85ed3b3bc883?q=80&w=600"
       },
       "China": {
-        desc: "Sutil danza del pincel y la tinta que conecta el vacío espiritual con la energía del paisaje.",
-        imgs: ["https://images.unsplash.com/photo-1529921879218-f99546d03a11?q=80&w=300", "https://images.unsplash.com/photo-1508804185872-d7badad00f7d?q=80&w=300", "https://images.unsplash.com/photo-1523733566160-f4ad1c4bf61c?q=80&w=300", "https://images.unsplash.com/photo-1534067783941-51c9c23ecefd?q=80&w=300"]
+        desc: "Danza del pincel y tinta que conecta espíritu vacuo con la energía del paisaje.",
+        img: "https://images.unsplash.com/photo-1508804185872-d7badad00f7d?q=80&w=600"
       },
       "India": {
-        desc: "Exuberancia espiritual grabada en piedra, celebrando deidades, movimiento y color infinito.",
-        imgs: ["https://images.unsplash.com/photo-1524492707947-28a0ff99d1d0?q=80&w=300", "https://images.unsplash.com/photo-1514222134-b57cbb8ce073?q=80&w=300", "https://images.unsplash.com/photo-1473163928189-3f40e1b53cb1?q=80&w=300", "https://images.unsplash.com/photo-1526715469105-d6a59b207127?q=80&w=300"]
+        desc: "Exuberancia espiritual en piedra, celebrando deidades, movimiento y color.",
+        img: "https://images.unsplash.com/photo-1524492707947-28a0ff99d1d0?q=80&w=600"
       },
       "Japón": {
-        desc: "Minimalismo Zen y elegancia narrativa que influyó profundamente en el arte moderno occidental.",
-        imgs: ["https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?q=80&w=300", "https://images.unsplash.com/photo-1528164344705-47542687000d?q=80&w=300", "https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?q=80&w=300", "https://images.unsplash.com/photo-1490730141103-6cac27aaab94?q=80&w=300"]
+        desc: "Minimalismo Zen y elegancia narrativa que influyó el arte moderno.",
+        img: "https://images.unsplash.com/photo-1528164344705-47542687000d?q=80&w=600"
       },
       "Gótico": {
-        desc: "Templos de luz con catedrales elevadas y vitrales que transforman la fe en color celestial.",
-        imgs: ["https://images.unsplash.com/photo-1481277542470-605612bd2d61?q=80&w=300", "https://images.unsplash.com/photo-1545193673-b30528690656?q=80&w=300", "https://images.unsplash.com/photo-1517713982677-4b66332f98de?q=80&w=300", "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?q=80&w=300"]
+        desc: "Templos de luz con vitrales que transforman la fe en color celestial.",
+        img: "https://images.unsplash.com/photo-1517713982677-4b66332f98de?q=80&w=600"
       },
       "Renacimiento": {
-        desc: "Despertar humanista que Redescubrió la perspectiva y la ciencia para capturar la realidad.",
-        imgs: ["https://images.unsplash.com/photo-1513364776144-60967b0f800f?q=80&w=300", "https://images.unsplash.com/photo-1605721911519-3dfeb3be25e7?q=80&w=300", "https://images.unsplash.com/photo-1550252112-7065983758a0?q=80&w=300", "https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?q=80&w=300"]
+        desc: "Despertar humanista que redescubrió la perspectiva y ciencia para capturar la realidad.",
+        img: "https://images.unsplash.com/photo-1605721911519-3dfeb3be25e7?q=80&w=600"
       },
       "Manierismo": {
-        desc: "Sofisticación y tensión que rompe las reglas clásicas para buscar una belleza más extraña.",
-        imgs: ["https://images.unsplash.com/photo-1576016770956-debb63d92058?q=80&w=300", "https://images.unsplash.com/photo-1541185933-ef5d8ed016c2?q=80&w=300", "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=300", "https://images.unsplash.com/photo-1506744038136-46273834b3fb?q=80&w=300"]
+        desc: "Sofisticación y tensión que rompe reglas clásicas para una belleza extraña.",
+        img: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=600"
       },
       "Barroco": {
-        desc: "Teatralidad y claroscuro intenso creado para conmover profundamente a través del drama visual.",
-        imgs: ["https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?q=80&w=300", "https://images.unsplash.com/photo-1547891299-0143899f2431?q=80&w=300", "https://images.unsplash.com/photo-1506744038136-46273834b3fb?q=80&w=300", "https://images.unsplash.com/photo-1470770841072-f978cf4d019e?q=80&w=300"]
+        desc: "Teatralidad y claroscuro intenso para conmover a través del drama visual.",
+        img: "https://images.unsplash.com/photo-1547891299-0143899f2431?q=80&w=600"
       },
       "Rococó": {
-        desc: "Alegre vivir aristocrático lleno de curvas galantes, colores pastel y decoración juguetona.",
-        imgs: ["https://images.unsplash.com/photo-1577083552431-6e5fd01988ec?q=80&w=300", "https://images.unsplash.com/photo-1527264935190-1401c51b5bbc?q=80&w=300", "https://images.unsplash.com/photo-1514894780063-5878f43cbf44?q=80&w=300", "https://images.unsplash.com/photo-1541185933-ef5d8ed016c2?q=80&w=300"]
+        desc: "Alegre aristocracia curva llena de colores pastel y decoración juguetona.",
+        img: "https://images.unsplash.com/photo-1527264935190-1401c51b5bbc?q=80&w=600"
       },
       "Romanticismo": {
-        desc: "Sublime fuerza de la naturaleza y pasión desbordada que exalta el sentimiento individual.",
-        imgs: ["https://images.unsplash.com/photo-1506744038136-46273834b3fb?q=80&w=300", "https://images.unsplash.com/photo-1470770841072-f978cf4d019e?q=80&w=300", "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=300", "https://images.unsplash.com/photo-1520121401995-928cd50d4e27?q=80&w=300"]
+        desc: "Fuerza sublime de la naturaleza y pasión que exalta el sentimiento individual.",
+        img: "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=600"
       },
       "Impresionismo": {
-        desc: "Captura de la luz fugaz a través de pinceladas sueltas que abandonan la línea tradicional.",
-        imgs: ["https://images.unsplash.com/photo-1578321272176-b7bbc0679853?q=80&w=300", "https://images.unsplash.com/photo-1541185933-ef5d8ed016c2?q=80&w=300", "https://images.unsplash.com/photo-1520121401995-928cd50d4e27?q=80&w=300", "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?q=80&w=300"]
+        desc: "Captura de luz fugaz a través de pinceladas que abandonan la línea.",
+        img: "https://images.unsplash.com/photo-1541185933-ef5d8ed016c2?q=80&w=600"
       },
       "Arte Siglo XX e Ismos": {
-        desc: "La gran ruptura de la mirada. Periodo de constante experimentación y vanguardias revolucionarias.",
-        imgs: ["https://images.unsplash.com/photo-1515405299444-18c99946bb13?q=80&w=300", "https://images.unsplash.com/photo-1549490349-8643362247b5?q=80&w=300", "https://images.unsplash.com/photo-1574169208507-84376144848b?q=80&w=300", "https://images.unsplash.com/photo-1563089145-599997674d42?q=80&w=300"]
+        desc: "Gran ruptura de la mirada. Periodo de experimentación y vanguardias constantes.",
+        img: "https://images.unsplash.com/photo-1574169208507-84376144848b?q=80&w=600"
       }
     };
 
@@ -725,7 +717,7 @@
           currentSelectedTheme = tema;
           document.getElementById('detailTitle').innerText = tema;
           document.getElementById('detailDesc').innerText = data.desc;
-          document.getElementById('detailImages').innerHTML = data.imgs.map(u => `<img src="${u}" alt="${tema}">`).join('');
+          document.getElementById('detailSingleImage').src = data.img;
           artDetailModal.classList.add('show');
         } else {
           document.getElementById('plTema').value = tema;
