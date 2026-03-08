@@ -203,29 +203,36 @@ app.post('/api/generate-plan', async (req, res) => {
 
 // --- NUEVO: ENDPOINT PARA EL CHAT DINÁMICO ---
 app.post('/api/chat', async (req, res) => {
-  console.log('--- NUEVA SOLICITUD DE CHAT RECIBIDA ---');
+  console.log('--- NUEVA SOLICITUD DE CHAT RECIBIDA (Detectado por logs) ---');
   try {
     const { mensaje, apiKey } = req.body;
-    if (!mensaje || !apiKey) {
-      console.log('Error: Mensaje o API Key faltantes');
-      return res.status(400).json({ error: 'Mensaje y API Key requeridos en el servidor.' });
+    if (!mensaje || !apiKey) return res.status(400).json({ error: 'Faltan datos.' });
+
+    const genAI = new GoogleGenerativeAI(apiKey);
+    
+    // Lista de modelos a intentar en orden de preferencia
+    const modelsToTry = ["gemini-1.5-flash", "gemini-pro"];
+    let lastError = null;
+
+    for (const modelName of modelsToTry) {
+      try {
+        console.log(`Intentando con modelo: ${modelName}...`);
+        const model = genAI.getGenerativeModel({ model: modelName });
+        const result = await model.generateContent(`Eres un asistente pedagógico de artes. Pregunta: ${mensaje}`);
+        const text = result.response.text();
+        console.log(`¡Éxito con ${modelName}!`);
+        return res.json({ respuesta: text });
+      } catch (err) {
+        console.error(`Fallo con ${modelName}:`, err.message);
+        lastError = err;
+        if (!err.message.includes('404')) break; // Si no es 404, el error es otro (ej. API Key)
+      }
     }
 
-    console.log('Consultando a Gemini 1.5-flash...');
-    const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-
-    const prompt = `Eres un asistente experto para profesores de Artes Plásticas. 
-    Responde de forma profesional, creativa y pedagógica. 
-    El profesor pregunta: "${mensaje}"`;
-
-    const result = await model.generateContent(prompt);
-    const text = result.response.text();
-    console.log('Respuesta de Gemini obtenida con éxito.');
-    res.json({ respuesta: text });
+    throw lastError;
   } catch (error) {
-    console.error('ERROR CRÍTICO EN CHAT:', error);
-    res.status(500).json({ error: 'Error interno del servidor al hablar con la IA.', details: error.message });
+    console.error('ERROR FINAL EN CHAT:', error);
+    res.status(500).json({ error: 'No se pudo conectar con la IA.', details: error.message });
   }
 });
 const PORT = process.env.PORT || 3000;
