@@ -910,6 +910,11 @@
         </div>
       </div>
 
+      <!-- Nueva sección para la Clave API en el chat -->
+      <div style="padding: 10px 15px; border-bottom: 1px solid rgba(255,255,255,0.08); background: rgba(0,0,0,0.2);">
+        <input type="password" id="chatApiKey" class="chat-input" placeholder="🔑 Pega aquí tu Clave API para chatear..." style="font-size: 0.8rem; height: 30px; margin-bottom: 0; border-color: var(--neon-magenta);">
+      </div>
+
       <div class="chat-panel-messages" id="chatMessages">
         <!-- Los mensajes aparecerán aquí dinámicamente -->
         <div class="msg-bubble msg-ai">
@@ -1111,12 +1116,14 @@
 
     const handleSend = async () => {
       const text = chatInput.value.trim();
-      const apiKey = document.getElementById('plApiKey').value.trim();
+      // Priorizar la clave del chat, luego la del planeador
+      const chatKey = document.getElementById('chatApiKey').value.trim();
+      const plannerKey = document.getElementById('plApiKey').value.trim();
+      const apiKey = chatKey || plannerKey;
 
       if(!text) return;
       if(!apiKey) {
-        alert("⚠️ Por favor, ingresa primero tu Clave API de Gemini en el Generador de Planeamientos para poder chatear con la IA.");
-        plannerModal.classList.add('show');
+        alert("⚠️ Por favor, ingresa tu Clave API de Gemini en el cuadro arriba del chat para poder hablar con la IA.");
         return;
       }
 
