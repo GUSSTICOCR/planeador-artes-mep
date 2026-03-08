@@ -22,59 +22,98 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'galeria.html'));
 });
 
-// --- ESCUDO DE CONEXIÓN HIPER-ROBUSTO: FALLBACK V1 -> V1BETA ---
+// --- SOLUCIÓN NUCLEAR: AUTO-DESCUBRIMIENTO Y FALLBACK REST ---
 async function generateWithFallback(apiKey, prompt, isJson = false) {
   const cleanKey = apiKey.trim().replace(/[\n\r]/g, '');
-  const genAI = new GoogleGenerativeAI(cleanKey);
   
-  // Combinaciones de Modelos y Versiones de API para probar
-  // Probamos v1beta si v1 falla (muy común en Render por restricciones regionales)
-  const configs = [
-    { model: "gemini-1.5-flash", version: "v1" },
-    { model: "gemini-1.5-flash", version: "v1beta" },
-    { model: "gemini-1.5-pro", version: "v1" },
-    { model: "gemini-1.5-pro", version: "v1beta" }
-  ];
-
-  let lastError = null;
-
-  for (const config of configs) {
+  try {
+    console.log("🔍 Iniciando Auto-Descubrimiento de modelos...");
+    const genAI = new GoogleGenerativeAI(cleanKey);
+    
+    // 1. Intentar listar modelos para ver qué hay disponible para esta clave
+    let availableModels = [];
     try {
-      console.log(`📡 Intentando: ${config.model} (${config.version})...`);
-      
-      const model = genAI.getGenerativeModel(
-        { model: config.model },
-        { apiVersion: config.version }
-      );
-      
-      const result = await model.generateContent(prompt);
-      const text = result.response.text();
-
-      if (isJson) {
-        let cleanJson = text.trim();
-        if (cleanJson.includes('```')) {
-          const parts = cleanJson.split('```');
-          cleanJson = parts[1].replace(/^json/, '').trim();
-        }
-        return JSON.parse(cleanJson);
+      // Intentamos con la versión v1beta que es la más rica en info
+      const listResp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${cleanKey}`);
+      const listData = await listResp.json();
+      if (listData.models) {
+        availableModels = listData.models
+          .filter(m => m.supportedGenerationMethods.includes('generateContent'))
+          .map(m => m.name.replace('models/', ''));
+        console.log("✅ Modelos detectados para esta clave:", availableModels.join(', '));
       }
-      
-      console.log(`✅ ¡Éxito con ${config.model} en ${config.version}!`);
-      return text;
-    } catch (err) {
-      console.warn(`⚠️ Error con ${config.model} (${config.version}):`, err.message);
-      lastError = err;
-      
-      // Si el error NO es un 404 (ej: Clave API inválida), paramos inmediatamente para informar al usuario
-      if (!err.message.includes('404')) {
-        throw new Error(`Error de Google (Clave o Permisos): ${err.message}`);
+    } catch (listErr) {
+      console.warn("⚠️ No se pudo listar modelos, usando lista de emergencia.");
+      availableModels = ["gemini-1.5-flash", "gemini-1.5-pro", "gemini-pro"];
+    }
+
+    // 2. Intentar modelos en orden de preferencia
+    const modelsToTry = [...new Set([...availableModels, "gemini-1.5-flash", "gemini-1.5-pro", "gemini-pro"])];
+    let lastError = null;
+
+    for (const modelName of modelsToTry) {
+      // Probamos cada modelo tanto en v1 como en v1beta
+      for (const version of ["v1", "v1beta"]) {
+        try {
+          console.log(`📡 Intentando: ${modelName} (${version})...`);
+          
+          // INTENTO A: Usando el SDK oficial
+          const model = genAI.getGenerativeModel({ model: modelName }, { apiVersion: version });
+          const result = await model.generateContent(prompt);
+          const response = await result.response;
+          const text = response.text();
+
+          if (isJson) {
+            let cleanJson = text.trim();
+            if (cleanJson.includes('```')) {
+              const parts = cleanJson.split('```');
+              cleanJson = parts[1].replace(/^json/, '').trim();
+            }
+            return JSON.parse(cleanJson);
+          }
+          console.log(`✨ ¡ÉXITO TOTAL con ${modelName} (${version})!`);
+          return text;
+        } catch (sdkErr) {
+          console.warn(`❌ Fallo SDK con ${modelName} (${version}):`, sdkErr.message);
+          
+          // INTENTO B: Cruce de Emergencia (Fetch Directo)
+          // Si el SDK falla por entorno (Render), probamos comunicación directa vía REST
+          try {
+            console.log(`🔌 Probando conexión directa (REST) para ${modelName}...`);
+            const restResp = await fetch(`https://generativelanguage.googleapis.com/${version}/models/${modelName}:generateContent?key=${cleanKey}`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+            });
+            
+            const restData = await restResp.json();
+            if (restResp.ok && restData.candidates) {
+              const text = restData.candidates[0].content.parts[0].text;
+              if (isJson) {
+                let cleanJson = text.trim();
+                if (cleanJson.includes('```')) {
+                  const parts = cleanJson.split('```');
+                  cleanJson = parts[1].replace(/^json/, '').trim();
+                }
+                return JSON.parse(cleanJson);
+              }
+              console.log(`🔗 ¡ÉXITO REST con ${modelName}! Bypassing SDK.`);
+              return text;
+            }
+          } catch (restErr) {
+            console.warn(`❌ Fallo REST con ${modelName}:`, restErr.message);
+          }
+          
+          lastError = sdkErr;
+          if (!sdkErr.message.includes('404')) break; // Si no es 404, el problema es la clave o el prompt
+        }
       }
     }
+    throw lastError;
+  } catch (err) {
+    console.error(`🔴 ERROR FINAL:`, err.message);
+    throw new Error(`Google AI Bloqueado (404/500). Por favor, revisa que tu API Key sea de Google AI Studio y tenga permisos para Gemini 1.5.`);
   }
-
-  // Si llegamos aquí es que todo falló con 404
-  console.error(`❌ TODAS LAS OPCIONES FALLARON`);
-  throw new Error(`Google no encuentra los modelos en ninguna versión (404). Verifica que tu API Key tenga acceso a Gemini 1.5.`);
 }
 
 let mepContentCache = null;
