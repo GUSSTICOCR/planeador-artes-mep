@@ -631,7 +631,55 @@
       .planner-body { flex-direction: column; }
       .planner-form { width: 100%; border-right: none; border-bottom: 1px solid rgba(255,255,255,0.08); }
     }
+
+    /* Estilos del Modal de Pago */
+    .pay-modal {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.9); backdrop-filter: blur(10px);
+      z-index: 3000; display: none; align-items: center; justify-content: center;
+    }
+    .pay-modal.show { display: flex; }
+    .pay-modal-content {
+      background: #1a1a1f; border: 1px solid var(--neon-cyan); border-radius: 20px;
+      padding: 40px; max-width: 450px; width: 90%; text-align: center;
+    }
+    .pay-btn {
+      background: var(--gradient-dynamic); color: white; border: none; padding: 15px 30px;
+      border-radius: 10px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 20px;
+    }
   </style>
+
+  <div class="pay-modal" id="payModal">
+    <div class="pay-modal-content">
+      <h2 style="color: var(--neon-cyan);">Acceso al Generador</h2>
+      <p id="payModalMsg">Obtén acceso ilimitado para crear planeamientos oficiales MEP durante **3 meses (90 días)**.</p>
+      
+      <div id="idSection">
+        <label class="planner-label">Tu Correo Electrónico</label>
+        <input type="email" id="userEmail" class="planner-input" placeholder="ejemplo@correo.com">
+        <button id="btnCheckAccess" class="pay-btn" style="background: var(--surface-light); border: 1px solid var(--neon-cyan);">Verificar Acceso / Comprar</button>
+      </div>
+
+      <div id="checkoutSection" style="display: none;">
+        <div style="background: rgba(0,250,218,0.05); padding: 20px; border-radius: 15px; border: 1px dashed var(--neon-cyan); margin-top: 20px;">
+          <h3 style="color: #fff; margin: 0 0 10px 0;">Paga vía SINPE Móvil</h3>
+          <p style="font-size: 1.1rem; color: var(--neon-cyan); font-weight: bold; margin: 5px 0;">₡2.500 colones</p>
+          <p style="font-size: 0.9rem; color: #ccc; margin: 5px 0;">Número: <strong>6069-2114</strong></p>
+          <p style="font-size: 0.9rem; color: #ccc; margin: 5px 0;">A nombre de: <strong>Allan Duarte</strong></p>
+        </div>
+        
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 15px;">
+          Una vez hecho el pago, envía el comprobante por WhatsApp para activar tu cuenta de inmediato.
+        </p>
+
+        <button id="btnWhatsApp" class="pay-btn" style="background: #25d366; color: #fff; display: flex; align-items: center; justify-content: center; gap: 10px;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.67-1.611-.918-2.206-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+          Enviar Comprobante
+        </button>
+        <button onclick="document.getElementById('payModal').classList.remove('show')" style="background:none; border:none; color:#666; margin-top:15px; cursor:pointer;">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
 
   <!-- MODAL DE DETALLES DE ARTE (Resumen + 1 Imagen) -->
   <div class="art-detail-modal" id="artDetailModal">
@@ -779,17 +827,87 @@
       if(e.target === plannerModal) plannerModal.classList.remove('show');
     };
 
-    // --- LÓGICA DEL GENERADOR ---
+    // --- LÓGICA DEL GENERADOR CON CONTROL DE ACCESO ---
     const btnGeneratePlan = document.getElementById('btnGeneratePlan');
     const planLoader = document.getElementById('planLoader');
     const planEmptyState = document.getElementById('planEmptyState');
     const planOutput = document.getElementById('planOutput');
+    const payModal = document.getElementById('payModal');
+    const userEmailInput = document.getElementById('userEmail');
+    
+    let userEmail = localStorage.getItem('mep_user_email') || "";
+    if(userEmail) userEmailInput.value = userEmail;
 
-    document.getElementById('openPlannerBtn').onclick = () => {
-      document.getElementById('plTema').value = "";
-      plannerModal.classList.add('show');
+    document.getElementById('openPlannerBtn').onclick = async () => {
+      if(!userEmail) {
+        payModal.classList.add('show');
+        return;
+      }
+      
+      // Verificar acceso en el servidor
+      try {
+        const resp = await fetch('/api/check-user-access', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: userEmail })
+        });
+        const data = await resp.json();
+        
+        if(data.hasAccess) {
+          document.getElementById('plTema').value = "";
+          plannerModal.classList.add('show');
+        } else {
+          if(data.expired) {
+            document.getElementById('payModalMsg').innerHTML = "<span style='color:var(--neon-magenta);'>¡Tu acceso ha vencido!</span><br>Paga la renovación para seguir usando el creador otros 3 meses.";
+          }
+          payModal.classList.add('show');
+          document.getElementById('checkoutSection').style.display = "block";
+        }
+      } catch (err) {
+        alert("Error de conexión con el servidor.");
+      }
     };
+
+    document.getElementById('btnCheckAccess').onclick = async () => {
+      const email = userEmailInput.value.trim();
+      if(!email) { alert("Ingresa tu correo"); return; }
+      
+      userEmail = email;
+      localStorage.setItem('mep_user_email', email.toLowerCase());
+      
+      const resp = await fetch('/api/check-user-access', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: userEmail })
+      });
+      const data = await resp.json();
+      
+      if(data.hasAccess) {
+        payModal.classList.remove('show');
+        plannerModal.classList.add('show');
+      } else {
+        if(data.expired) {
+          document.getElementById('payModalMsg').innerHTML = "<span style='color:var(--neon-magenta);'>¡Tu acceso ha vencido!</span><br>Paga la renovación para seguir usando el creador otros 3 meses.";
+        }
+        document.getElementById('checkoutSection').style.display = "block";
+        document.getElementById('idSection').style.opacity = "0.5";
+      }
+    };
+
+    document.getElementById('btnWhatsApp').onclick = () => {
+      const msg = encodeURIComponent(`Hola Allan, acabo de realizar el SINPE para activar mi correo: ${userEmail}. Adjunto el comprobante.`);
+      window.open(`https://wa.me/50660692114?text=${msg}`, '_blank');
+    };
+
     document.getElementById('closePlannerBtn').onclick = () => plannerModal.classList.remove('show');
+
+
+    // Manejar éxito de pago (URL params)
+    const urlParams = new URLSearchParams(window.location.search);
+    if(urlParams.get('success')) {
+      alert("¡Pago procesado con éxito! Ya puedes usar el planeador.");
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
 
     btnGeneratePlan.onclick = async () => {
       const apiKey = document.getElementById('plApiKey').value.trim();
@@ -802,46 +920,57 @@
       planEmptyState.style.display = 'none';
       planOutput.style.display = 'none';
       planLoader.style.display = 'flex';
+      btnGeneratePlan.disabled = true;
 
       try {
-        const resp = await fetch('/api/generate-plan', {
+        const response = await fetch('/api/generate-plan', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ apiKey, nivel, tema, instruccionesExtra: extra })
+          body: JSON.stringify({ 
+            nivel, 
+            tema, 
+            instruccionesExtra: extra, 
+            apiKey,
+            email: userEmail
+          })
         });
-        
-        let d = {};
-        try { d = await resp.json(); } catch(jsonErr) { console.error("Respuesta no es JSON:", jsonErr); }
 
-        if(resp.ok) {
+        const data = await response.json();
+        
+        if (response.ok) {
           planLoader.style.display = 'none';
           planOutput.style.display = 'block';
-          const p = d.plan;
+          btnGeneratePlan.disabled = false;
+          
+          const plan = data.plan;
           planOutput.innerHTML = `
-            <div style="background:white; color:black; padding:20px; border-radius:8px; font-family:Arial;">
-              <h3 style="margin-top:0;">Planeamiento: ${tema}</h3>
+            <div style="background:white; color:black; padding:20px; border-radius:15px; font-family:Arial; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+              <h3 style="margin-top:0; color:#1a1a1f;">Planeamiento Generado: ${tema}</h3>
               <p><strong>Nivel:</strong> ${nivel}</p>
-              <div style="margin-top:15px; border-top:1px solid #ddd; padding-top:15px;">
-                <strong>Aprendizajes:</strong> ${p.aprendizajes.join(', ')}<br><br>
-                <strong>Materiales:</strong> ${p.mediacion.materiales.join(', ')}<br><br>
-                <strong>Estrategia destacada:</strong> ${p.mediacion.exploracion}
+              <div style="margin-top:15px; border-top:1px solid #eee; padding-top:15px; font-size:0.9rem;">
+                <p><strong>Aprendizajes:</strong> ${plan.aprendizajes.join(', ')}</p>
+                <p><strong>Materiales:</strong> ${plan.mediacion.materiales.join(', ')}</p>
+                <p><strong>Focalización:</strong> ${plan.mediacion.focalizacion.substring(0, 100)}...</p>
               </div>
-              <div style="margin-top:20px; text-align:center;">
-                <a href="${d.pdfUrl}" target="_blank" style="background:#2e7d32; color:white; padding:10px 20px; text-decoration:none; border-radius:5px; font-weight:bold;">📥 Descargar PDF Completo (Formato MEP)</a>
+              <div style="margin-top:25px; text-align:center;">
+                <a href="${data.pdfUrl}" target="_blank" style="background:#2e7d32; color:white; padding:12px 25px; text-decoration:none; border-radius:10px; font-weight:bold; display:inline-block; transition: background 0.3s;">
+                  📥 Descargar PDF Oficial MEP
+                </a>
               </div>
             </div>
           `;
         } else {
-          planLoader.style.display = 'none';
-          alert(`❌ Error del Servidor (${resp.status}): ${d.mensaje || d.error || 'Error desconocido'}`);
+          throw new Error(data.mensaje || data.error || 'Error desconocido');
         }
-      } catch(e) { 
-        console.error("Error en fetch:", e);
-        alert("⚠️ Error de Red: No se pudo contactar al servidor. Revisa los logs en Render."); 
+      } catch (error) {
+        console.error('ERROR EN GENERACIÓN:', error);
+        alert(`❌ Error: ${error.message}`);
         planLoader.style.display = 'none';
+        planEmptyState.style.display = 'flex';
+        btnGeneratePlan.disabled = false;
       }
     };
-
   </script>
 </body>
 </html>
+

@@ -6,21 +6,118 @@ import { fileURLToPath } from 'url';
 import pdfParse from 'pdf-parse/lib/pdf-parse.js';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import PDFDocument from 'pdfkit';
+import 'dotenv/config';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Configuración
+const OWNER_EMAIL = process.env.OWNER_EMAIL || 'wenalessa@gmail.com';
+
 const app = express();
 app.use(cors());
-app.use(express.json());
+
+// Registro simple de usuarios que han pagado (En producción usar DB)
+const paidUsersFile = path.join(__dirname, 'paid_users.json');
+if (!fs.existsSync(paidUsersFile)) {
+  fs.writeFileSync(paidUsersFile, JSON.stringify([]));
+}
+
+function getPaidUsers() {
+  return JSON.parse(fs.readFileSync(paidUsersFile, 'utf8'));
+}
+
+function markAsPaid(email) {
+  const users = getPaidUsers();
+  const expiresAt = new Date();
+  expiresAt.setDate(expiresAt.getDate() + 90); // 90 días de acceso
+  
+  const existingUserIndex = users.findIndex(u => u.email === email.toLowerCase());
+  if (existingUserIndex > -1) {
+    users[existingUserIndex].expiresAt = expiresAt.toISOString();
+  } else {
+    users.push({ email: email.toLowerCase(), expiresAt: expiresAt.toISOString() });
+  }
+  fs.writeFileSync(paidUsersFile, JSON.stringify(users));
+}
+
+// Middleware para verificar acceso
+function checkAccess(req, res, next) {
+  const { email } = req.body;
+  
+  if (!email) return res.status(401).json({ error: 'Email requerido para verificar acceso.' });
+  
+  const cleanEmail = email.toLowerCase();
+  
+  // El dueño entra gratis siempre
+  if (cleanEmail === OWNER_EMAIL.toLowerCase()) return next(); 
+  
+  const users = getPaidUsers();
+  const userRecord = users.find(u => u.email === cleanEmail);
+  
+  if (userRecord) {
+    const now = new Date();
+    const expiry = new Date(userRecord.expiresAt);
+    
+    if (now < expiry) {
+      return next(); // Acceso vigente
+    } else {
+      return res.status(403).json({ error: 'Tu acceso por 3 meses ha vencido. Por favor, renueva tu suscripción.' });
+    }
+  }
+  
+  res.status(403).json({ error: 'Acceso denegado. Debes adquirir el acceso por 3 meses.' });
+}
 
 // Servir archivos estáticos
 app.use(express.static(__dirname));
+
+// Express JSON middleware (después de webhook si se usa raw body para Stripe)
+app.use(express.json());
 
 // Redirigir la raíz a galeria.html para evitar errores en Render
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'galeria.html'));
 });
+
+// Endpoint para verificar si un usuario ya pagó y si su acceso sigue vigente
+app.post('/api/check-user-access', async (req, res) => {
+  const { email } = req.body;
+  if (!email) return res.status(400).json({ hasAccess: false });
+  
+  const cleanEmail = email.toLowerCase();
+  if (cleanEmail === OWNER_EMAIL.toLowerCase()) {
+    return res.json({ hasAccess: true, isOwner: true });
+  }
+  
+  const users = getPaidUsers();
+  const userRecord = users.find(u => u.email === cleanEmail);
+  
+  if (userRecord) {
+    const now = new Date();
+    const expiry = new Date(userRecord.expiresAt);
+    if (now < expiry) {
+      return res.json({ 
+        hasAccess: true, 
+        expiresAt: userRecord.expiresAt,
+        daysRemaining: Math.ceil((expiry - now) / (1000 * 60 * 60 * 24))
+      });
+    }
+  }
+  
+  res.json({ hasAccess: false, expired: !!userRecord });
+});
+
+// Mock/Simple Webhook para pruebas (o para que tú mismo habilites correos)
+app.post('/api/activate-user-manually', (req, res) => {
+  const { email, masterKey } = req.body;
+  if (masterKey === process.env.API_KEY_GEMINI) { // Usamos la de Gemini como "password" simple
+    markAsPaid(email.toLowerCase());
+    return res.json({ success: true, message: `Usuario ${email} activado.` });
+  }
+  res.status(403).json({ error: 'No autorizado.' });
+});
+
 
 // --- SOLUCIÓN NUCLEAR: AUTO-DESCUBRIMIENTO Y FALLBACK REST ---
 async function generateWithFallback(apiKey, prompt, isJson = false) {
@@ -133,9 +230,11 @@ async function loadMEPContent() {
   }
 }
 
-app.post('/api/generate-plan', async (req, res) => {
+// RUTA PROTEGIDA CON checkAccess
+app.post('/api/generate-plan', checkAccess, async (req, res) => {
   try {
     const { nivel, tema, instruccionesExtra, apiKey } = req.body;
+
     
     if (!nivel || !tema || !apiKey) {
       return res.status(400).json({ error: 'Nivel, Tema y API Key son requeridos.' });
