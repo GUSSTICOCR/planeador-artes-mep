@@ -223,25 +223,6 @@ app.post('/api/generate-plan', async (req, res) => {
   }
 });
 
-// --- NUEVO: ENDPOINT PARA EL CHAT DINÁMICO ---
-app.post('/api/chat', async (req, res) => {
-  console.log('--- SOLICITUD DE CHAT RECIBIDA ---');
-  try {
-    const { mensaje, apiKey } = req.body;
-    if (!mensaje || !apiKey) return res.status(400).json({ error: 'Faltan datos.' });
-
-    const prompt = `Eres un asistente experto para profesores de Artes Plásticas. Pregunta: "${mensaje}"`;
-    const text = await generateWithFallback(apiKey, prompt, false);
-    
-    res.json({ respuesta: text });
-  } catch (error) {
-    console.error('ERROR FINAL EN CHAT:', error.message);
-    res.status(500).json({ 
-      error: 'Google no reconoce el modelo o la clave.', 
-      details: error.message 
-    });
-  }
-});
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`\n======================================================`);
