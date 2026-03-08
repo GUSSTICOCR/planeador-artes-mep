@@ -1,26 +1,29 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
-const apiKey = "AIzaSyCL-cn0BYHhs-VyRGqoZtruDe5WjcsEh10";
+async function testConnection(apiKey) {
+  const genAI = new GoogleGenerativeAI(apiKey);
+  const configs = [
+    { model: "gemini-1.5-flash", version: "v1" },
+    { model: "gemini-1.5-flash", version: "v1beta" },
+    { model: "gemini-1.5-pro", version: "v1" },
+    { model: "gemini-1.5-pro", version: "v1beta" }
+  ];
 
-async function testApiKey() {
+  console.log("🚀 Iniciando Prueba de Escudo Gemini...");
+  
+  for (const config of configs) {
     try {
-        console.log("Verificando API Key...");
-        const genAI = new GoogleGenerativeAI(apiKey);
-        
-        console.log("Intentando listar modelos disponibles...");
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
-        const data = await response.json();
-        
-        if(data.models) {
-            console.log("Modelos disponibles:");
-            data.models.forEach(m => console.log(`- ${m.name} (${m.supportedGenerationMethods})`));
-        } else {
-            console.log("Error consultando modelos:", data);
-        }
-        
-    } catch (error) {
-        console.error("Error fatal:", error.message);
+      console.log(`📡 Probando: ${config.model} en ${config.version}...`);
+      const model = genAI.getGenerativeModel({ model: config.model }, { apiVersion: config.version });
+      const result = await model.generateContent("Di 'Hola, Wendy' si funcionas.");
+      console.log(`✅ ¡ÉXITO! Google respondió: "${result.response.text().trim()}"`);
+      return;
+    } catch (err) {
+      console.warn(`⚠️ Falló ${config.model} (${config.version}): ${err.message}`);
     }
+  }
+  console.error("❌ TODAS LAS OPCIONES FALLARON. Revisa tu clave API.");
 }
 
-testApiKey();
+// Para probar localmente, descomenta la línea de abajo y pon tu clave:
+// testConnection("TU_API_KEY_AQUI");

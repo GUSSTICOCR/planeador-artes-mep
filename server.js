@@ -22,49 +22,59 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'galeria.html'));
 });
 
-// --- ESCUDO DE CONEXIÓN: FORZAR V1 Y LIMPIAR KEY ---
+// --- ESCUDO DE CONEXIÓN HIPER-ROBUSTO: FALLBACK V1 -> V1BETA ---
 async function generateWithFallback(apiKey, prompt, isJson = false) {
-  try {
-    const cleanKey = apiKey.trim().replace(/[\n\r]/g, '');
-    
-    // Configuración robusta: Forzamos la versión v1 desde la base
-    const genAI = new GoogleGenerativeAI(cleanKey); 
-    
-    // Intentar primero con Flash (más rápido y económico) y luego con Pro
-    const modelsToTry = ["gemini-1.5-flash", "gemini-1.5-pro"];
-    let lastError = null;
+  const cleanKey = apiKey.trim().replace(/[\n\r]/g, '');
+  const genAI = new GoogleGenerativeAI(cleanKey);
+  
+  // Combinaciones de Modelos y Versiones de API para probar
+  // Probamos v1beta si v1 falla (muy común en Render por restricciones regionales)
+  const configs = [
+    { model: "gemini-1.5-flash", version: "v1" },
+    { model: "gemini-1.5-flash", version: "v1beta" },
+    { model: "gemini-1.5-pro", version: "v1" },
+    { model: "gemini-1.5-pro", version: "v1beta" }
+  ];
 
-    for (const modelName of modelsToTry) {
-      try {
-        console.log(`📡 Solicitando a Google: ${modelName} (Versión Estable v1)...`);
-        
-        // El segundo parámetro forzando apiVersion: 'v1' es CRÍTICO
-        const model = genAI.getGenerativeModel({ model: modelName }, { apiVersion: 'v1' });
-        
-        const result = await model.generateContent(prompt);
-        const text = result.response.text();
+  let lastError = null;
 
-        if (isJson) {
-          let cleanJson = text.trim();
-          if (cleanJson.includes('```')) {
-            const parts = cleanJson.split('```');
-            cleanJson = parts[1].replace(/^json/, '').trim();
-          }
-          return JSON.parse(cleanJson);
+  for (const config of configs) {
+    try {
+      console.log(`📡 Intentando: ${config.model} (${config.version})...`);
+      
+      const model = genAI.getGenerativeModel(
+        { model: config.model },
+        { apiVersion: config.version }
+      );
+      
+      const result = await model.generateContent(prompt);
+      const text = result.response.text();
+
+      if (isJson) {
+        let cleanJson = text.trim();
+        if (cleanJson.includes('```')) {
+          const parts = cleanJson.split('```');
+          cleanJson = parts[1].replace(/^json/, '').trim();
         }
-        return text;
-      } catch (innerErr) {
-        console.warn(`⚠️ Fallo con ${modelName}:`, innerErr.message);
-        lastError = innerErr;
-        // Si el error no es de "modelo no encontrado (404)", dejamos de intentar (ej: clave inválida)
-        if (!innerErr.message.includes('404')) break;
+        return JSON.parse(cleanJson);
+      }
+      
+      console.log(`✅ ¡Éxito con ${config.model} en ${config.version}!`);
+      return text;
+    } catch (err) {
+      console.warn(`⚠️ Error con ${config.model} (${config.version}):`, err.message);
+      lastError = err;
+      
+      // Si el error NO es un 404 (ej: Clave API inválida), paramos inmediatamente para informar al usuario
+      if (!err.message.includes('404')) {
+        throw new Error(`Error de Google (Clave o Permisos): ${err.message}`);
       }
     }
-    throw lastError;
-  } catch (err) {
-    console.error(`❌ ERROR CRÍTICO EN CONEXIÓN GOOGLE:`, err.message);
-    throw new Error(`Error de Google AI (v1): ${err.message}`);
   }
+
+  // Si llegamos aquí es que todo falló con 404
+  console.error(`❌ TODAS LAS OPCIONES FALLARON`);
+  throw new Error(`Google no encuentra los modelos en ninguna versión (404). Verifica que tu API Key tenga acceso a Gemini 1.5.`);
 }
 
 let mepContentCache = null;
@@ -92,7 +102,6 @@ app.post('/api/generate-plan', async (req, res) => {
       return res.status(400).json({ error: 'Nivel, Tema y API Key son requeridos.' });
     }
 
-    const genAI = new GoogleGenerativeAI(apiKey);
     const mepText = await loadMEPContent();
 
     const systemInstruction = `Eres un experto pedagogo del MEP Costa Rica. Crea un planeamiento de Artes Plásticas basado en el programa oficial. 
