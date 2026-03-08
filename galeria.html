@@ -1150,7 +1150,11 @@
         if(resp.ok) {
           addMessage(d.respuesta, 'ai');
         } else {
-          addMessage("Lo siento, hubo un error al conectar con Gemini. Revisa tu API Key.", 'ai');
+          // Si el error es 404, es que el servidor no ha actualizado el código
+          const errorMsg = resp.status === 404 
+            ? "Error 404: El servidor aún no tiene el código nuevo. Por favor, asegúrate de haber hecho 'Manual Deploy' en Render."
+            : `Error ${resp.status}: ${d.error || 'Problema con la API Key o Gemini'}`;
+          addMessage(errorMsg, 'ai');
         }
       } catch (e) {
         chatMessages.removeChild(loadingDiv);

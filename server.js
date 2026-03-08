@@ -199,12 +199,15 @@ app.post('/api/generate-plan', async (req, res) => {
 
 // --- NUEVO: ENDPOINT PARA EL CHAT DINÁMICO ---
 app.post('/api/chat', async (req, res) => {
+  console.log('--- NUEVA SOLICITUD DE CHAT RECIBIDA ---');
   try {
     const { mensaje, apiKey } = req.body;
     if (!mensaje || !apiKey) {
-      return res.status(400).json({ error: 'Mensaje y API Key requeridos.' });
+      console.log('Error: Mensaje o API Key faltantes');
+      return res.status(400).json({ error: 'Mensaje y API Key requeridos en el servidor.' });
     }
 
+    console.log('Consultando a Gemini 1.5-flash...');
     const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
@@ -213,10 +216,12 @@ app.post('/api/chat', async (req, res) => {
     El profesor pregunta: "${mensaje}"`;
 
     const result = await model.generateContent(prompt);
-    res.json({ respuesta: result.response.text() });
+    const text = result.response.text();
+    console.log('Respuesta de Gemini obtenida con éxito.');
+    res.json({ respuesta: text });
   } catch (error) {
-    console.error('Error en Chat:', error);
-    res.status(500).json({ error: 'Error al procesar el chat con la IA.' });
+    console.error('ERROR CRÍTICO EN CHAT:', error);
+    res.status(500).json({ error: 'Error interno del servidor al hablar con la IA.', details: error.message });
   }
 });
 const PORT = process.env.PORT || 3000;
