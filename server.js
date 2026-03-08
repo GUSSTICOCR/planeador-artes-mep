@@ -17,6 +17,11 @@ app.use(express.json());
 // Servir archivos estáticos
 app.use(express.static(__dirname));
 
+// Redirigir la raíz a galeria.html para evitar errores en Render
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'galeria.html'));
+});
+
 // --- HELPER PARA LIMPIAR API KEY Y LLAMAR A GEMINI ---
 async function generateWithFallback(apiKey, prompt, isJson = false) {
   const cleanKey = apiKey.trim().replace(/[\n\r]/g, '');

@@ -727,12 +727,6 @@
     });
 
     document.getElementById('closeDetail').onclick = () => artDetailModal.classList.remove('show');
-    document.getElementById('btnGeminiInfo').onclick = () => {
-      artDetailModal.classList.remove('show');
-      plannerModal.classList.add('show');
-      document.getElementById('plTema').value = currentSelectedTheme;
-    };
-
     document.getElementById('btnWebSearch').onclick = () => {
       const query = encodeURIComponent(`información sobre ${currentSelectedTheme} historia y características principales`);
       window.open(`https://www.google.com/search?q=${query}`, '_blank');
