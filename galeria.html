@@ -1325,12 +1325,14 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ apiKey, nivel, tema, instruccionesExtra: extra })
         });
-        const d = await resp.json();
+        
+        let d = {};
+        try { d = await resp.json(); } catch(jsonErr) { console.error("Respuesta no es JSON:", jsonErr); }
+
         if(resp.ok) {
           planLoader.style.display = 'none';
           planOutput.style.display = 'block';
           const p = d.plan;
-          const matHtml = p.mediacion.materiales.map(m => `<li>${m}</li>`).join('');
           planOutput.innerHTML = `
             <div style="background:white; color:black; padding:20px; border-radius:8px; font-family:Arial;">
               <h3 style="margin-top:0;">Planeamiento: ${tema}</h3>
@@ -1345,9 +1347,13 @@
               </div>
             </div>
           `;
-        } else alert("Error: " + d.error);
+        } else {
+          planLoader.style.display = 'none';
+          alert(`❌ Error del Servidor (${resp.status}): ${d.mensaje || d.error || 'Error desconocido'}`);
+        }
       } catch(e) { 
-        alert("Error de conexión"); 
+        console.error("Error en fetch:", e);
+        alert("⚠️ Error de Red: No se pudo contactar al servidor. Revisa los logs en Render."); 
         planLoader.style.display = 'none';
       }
     };

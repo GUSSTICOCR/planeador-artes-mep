@@ -192,8 +192,12 @@ app.post('/api/generate-plan', async (req, res) => {
       res.json({ success: true, plan: plan, pdfUrl: `/${pdfFileName}` });
     });
   } catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({ error: 'Error en generación estructurada.', details: error.message });
+    console.error('ERROR DETALLADO EN GENERACIÓN:', error);
+    res.status(500).json({ 
+      error: 'Error interno en el servidor al generar el planeamiento.', 
+      mensaje: error.message,
+      stack: error.stack 
+    });
   }
 });
 
