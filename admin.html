@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Administración - MEP-IA</title>
+    <style>
+        body { font-family: sans-serif; background: #1a1a2e; color: white; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .card { background: #16213e; padding: 30px; border-radius: 15px; box-shadow: 0 0 20px rgba(0,0,0,0.5); width: 100%; max-width: 400px; }
+        h1 { color: #00fada; font-size: 1.5rem; text-align: center; }
+        label { display: block; margin-top: 15px; font-size: 0.9rem; color: #ccc; }
+        input { width: 100%; padding: 10px; margin-top: 5px; border-radius: 5px; border: 1px solid #333; background: #0f3460; color: white; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; margin-top: 25px; background: #00fada; border: none; border-radius: 5px; color: #1a1a2e; font-weight: bold; cursor: pointer; }
+        button:hover { background: #00e0c4; }
+        #status { margin-top: 20px; text-align: center; font-size: 0.9rem; padding: 10px; border-radius: 5px; display: none; }
+        .success { background: rgba(0,255,0,0.1); color: #00ff00; display: block !important; }
+        .error { background: rgba(255,0,0,0.1); color: #ff4d4d; display: block !important; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>Activar Usuario</h1>
+        <p style="font-size: 0.8rem; color: #888; text-align: center;">Usa esta herramienta cuando recibas un pago por SINPE.</p>
+        
+        <label for="email">Correo del Cliente</label>
+        <input type="email" id="email" placeholder="ejemplo@gmail.com">
+        
+        <label for="masterKey">Clave Maestra (Tu API Key de Gemini)</label>
+        <input type="password" id="masterKey" placeholder="Pega tu clave aquí">
+        
+        <button id="btnActivate">Activar Acceso (90 Días)</button>
+        
+        <div id="status"></div>
+    </div>
+
+    <script>
+        document.getElementById('btnActivate').onclick = async () => {
+            const email = document.getElementById('email').value.trim();
+            const masterKey = document.getElementById('masterKey').value.trim();
+            const statusDiv = document.getElementById('status');
+            
+            if(!email || !masterKey) {
+                alert("Por favor llena ambos campos.");
+                return;
+            }
+
+            statusDiv.innerText = "Procesando...";
+            statusDiv.className = "";
+
+            try {
+                const response = await fetch('/api/activate-user-manually', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, masterKey })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    statusDiv.innerText = "✅ ¡Usuario activado con éxito!";
+                    statusDiv.className = "success";
+                    document.getElementById('email').value = "";
+                } else {
+                    statusDiv.innerText = "❌ Error: " + (data.error || "No se pudo activar.");
+                    statusDiv.className = "error";
+                }
+            } catch (err) {
+                statusDiv.innerText = "❌ Error de conexión con el servidor.";
+                statusDiv.className = "error";
+            }
+        };
+    </script>
+</body>
+</html>
