@@ -911,17 +911,11 @@
       </div>
 
       <div class="chat-panel-messages" id="chatMessages">
-        
-        <div class="msg-bubble msg-collega">
-          <div class="msg-sender">Carlos (Prof. Dibujo)</div>
-          ¡Hola Wendy! Excelente galería. ¿Algún consejo para introducir el arte abstracto a jóvenes de 7mo año sin que se frustren?
+        <!-- Los mensajes aparecerán aquí dinámicamente -->
+        <div class="msg-bubble msg-ai">
+          <div class="msg-sender">✨ Gemini AI Asistente</div>
+          ¡Hola! Soy tu asistente pedagógico de artes. ¿En qué puedo ayudarte hoy con tus clases o investigaciones?
         </div>
-
-        <div class="msg-bubble msg-user">
-          <div class="msg-sender">Wendy G.</div>
-          ¡Hola Carlos! Me gusta empezar con música. Que dibujen lo que escuchan con crayones antes de pasar a la pintura formal.
-        </div>
-
       </div>
 
       <div class="chat-panel-input">
@@ -1107,24 +1101,54 @@
     /* Lógica del Chat Colaborativo */
     const chatInput = document.getElementById('chatInput');
     const btnSend = document.getElementById('btnSend');
-    const chatMessages = document.getElementById('chatMessages');
-
     function addMessage(text, type) {
       const msgDiv = document.createElement('div');
       msgDiv.className = `msg-bubble ${type === 'user' ? 'msg-user' : 'msg-ai'}`;
-      msgDiv.innerHTML = `<div class="msg-sender">${type === 'user' ? 'Tú / Profesor' : '✨ Gemini AI Experto'}</div>${text}`;
+      msgDiv.innerHTML = `<div class="msg-sender">${type === 'user' ? 'Tú / Profesor' : '✨ Gemini AI Asistente'}</div>${text}`;
       chatMessages.appendChild(msgDiv);
       chatMessages.scrollTop = chatMessages.scrollHeight;
     }
 
-    const handleSend = () => {
+    const handleSend = async () => {
       const text = chatInput.value.trim();
+      const apiKey = document.getElementById('plApiKey').value.trim();
+
       if(!text) return;
+      if(!apiKey) {
+        alert("⚠️ Por favor, ingresa primero tu Clave API de Gemini en el Generador de Planeamientos para poder chatear con la IA.");
+        plannerModal.classList.add('show');
+        return;
+      }
+
       addMessage(text, 'user');
       chatInput.value = '';
-      setTimeout(() => {
-        addMessage("Como tu asistente experto, te sugiero integrar este tema con ejercicios prácticos de observación. ¿Quieres que redacte un objetivo específico para el MEP?", "ai");
-      }, 1000);
+
+      // Mensaje de "escribiendo..."
+      const loadingDiv = document.createElement('div');
+      loadingDiv.className = 'msg-bubble msg-ai';
+      loadingDiv.innerHTML = `<div class="msg-sender">✨ Gemini AI Asistente</div><div class="status-pulse" style="display:inline-block; width:8px; height:8px; margin-right:5px;"></div> Escuchando...`;
+      chatMessages.appendChild(loadingDiv);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+
+      try {
+        const resp = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ mensaje: text, apiKey: apiKey })
+        });
+        const d = await resp.json();
+        
+        chatMessages.removeChild(loadingDiv);
+        
+        if(resp.ok) {
+          addMessage(d.respuesta, 'ai');
+        } else {
+          addMessage("Lo siento, hubo un error al conectar con Gemini. Revisa tu API Key.", 'ai');
+        }
+      } catch (e) {
+        chatMessages.removeChild(loadingDiv);
+        addMessage("Error de conexión con el servidor.", 'ai');
+      }
     };
 
     btnSend.onclick = handleSend;
