@@ -1151,10 +1151,9 @@
         if(resp.ok) {
           addMessage(d.respuesta, 'ai');
         } else {
-          // Si el error es 404, es que el servidor no ha actualizado el código
-          const errorMsg = resp.status === 404 
-            ? "Error 404: El servidor aún no tiene el código nuevo. Por favor, asegúrate de haber hecho 'Manual Deploy' en Render."
-            : `Error ${resp.status}: ${d.error || 'Problema con la API Key o Gemini'}`;
+          // Si el error es 404, es que el servidor no tiene el código o Google no halla el modelo
+          const detail = d.details || d.error || 'Problema desconocido';
+          const errorMsg = `❌ Error ${resp.status}: ${detail}`;
           addMessage(errorMsg, 'ai');
         }
       } catch (e) {
