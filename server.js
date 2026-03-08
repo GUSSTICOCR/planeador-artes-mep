@@ -22,41 +22,49 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'galeria.html'));
 });
 
-// --- HELPER PARA LIMPIAR API KEY Y LLAMAR A GEMINI ---
+// --- ESCUDO DE CONEXIÓN: FORZAR V1 Y LIMPIAR KEY ---
 async function generateWithFallback(apiKey, prompt, isJson = false) {
-  const cleanKey = apiKey.trim().replace(/[\n\r]/g, '');
-  const genAI = new GoogleGenerativeAI(cleanKey); 
-  
-  // Lista de modelos a intentar para evitar el 404 de región
-  const models = ["gemini-1.5-flash", "gemini-1.5-pro"]; 
-  let lastError = null;
+  try {
+    const cleanKey = apiKey.trim().replace(/[\n\r]/g, '');
+    
+    // Configuración robusta: Forzamos la versión v1 desde la base
+    const genAI = new GoogleGenerativeAI(cleanKey); 
+    
+    // Intentar primero con Flash (más rápido y económico) y luego con Pro
+    const modelsToTry = ["gemini-1.5-flash", "gemini-1.5-pro"];
+    let lastError = null;
 
-  for (const modelName of models) {
-    try {
-      console.log(`Intentando: ${modelName} (Versión API v1)...`);
-      // FORZAMOS LA VERSIÓN v1 (apiVersion: 'v1')
-      const model = genAI.getGenerativeModel({ model: modelName }, { apiVersion: 'v1' });
-      
-      const result = await model.generateContent(prompt);
-      const text = result.response.text();
-      
-      if (isJson) {
-        let cleanJson = text.trim();
-        if (cleanJson.includes('```')) {
-          const parts = cleanJson.split('```');
-          cleanJson = parts[1].replace(/^json/, '').trim();
+    for (const modelName of modelsToTry) {
+      try {
+        console.log(`📡 Solicitando a Google: ${modelName} (Versión Estable v1)...`);
+        
+        // El segundo parámetro forzando apiVersion: 'v1' es CRÍTICO
+        const model = genAI.getGenerativeModel({ model: modelName }, { apiVersion: 'v1' });
+        
+        const result = await model.generateContent(prompt);
+        const text = result.response.text();
+
+        if (isJson) {
+          let cleanJson = text.trim();
+          if (cleanJson.includes('```')) {
+            const parts = cleanJson.split('```');
+            cleanJson = parts[1].replace(/^json/, '').trim();
+          }
+          return JSON.parse(cleanJson);
         }
-        return JSON.parse(cleanJson);
+        return text;
+      } catch (innerErr) {
+        console.warn(`⚠️ Fallo con ${modelName}:`, innerErr.message);
+        lastError = innerErr;
+        // Si el error no es de "modelo no encontrado (404)", dejamos de intentar (ej: clave inválida)
+        if (!innerErr.message.includes('404')) break;
       }
-      return text;
-    } catch (err) {
-      console.error(`Fallo con ${modelName}:`, err.message);
-      lastError = err;
-      // Si no es un error de "no encontrado", paramos (ej: clave inválida)
-      if (!err.message.includes('404')) break;
     }
+    throw lastError;
+  } catch (err) {
+    console.error(`❌ ERROR CRÍTICO EN CONEXIÓN GOOGLE:`, err.message);
+    throw new Error(`Error de Google AI (v1): ${err.message}`);
   }
-  throw lastError;
 }
 
 let mepContentCache = null;
