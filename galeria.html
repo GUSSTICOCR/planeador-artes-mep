@@ -36,6 +36,7 @@
     .text-gradient {
       background: var(--gradient-dynamic);
       -webkit-background-clip: text;
+      background-clip: text;
       -webkit-text-fill-color: transparent;
     }
 
@@ -646,6 +647,35 @@
       background: var(--gradient-dynamic); color: white; border: none; padding: 15px 30px;
       border-radius: 10px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 20px;
     }
+
+    /* Estilos del Modal de Perfil de Docente */
+    .profile-modal {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.92); backdrop-filter: blur(12px);
+      z-index: 4000; display: none; align-items: center; justify-content: center;
+    }
+    .profile-modal.show { display: flex; }
+    .profile-modal-content {
+      background: #1a1a1f; border: 1px solid var(--neon-purple);
+      border-radius: 20px; max-width: 460px; width: 90%; overflow: hidden;
+      box-shadow: 0 0 40px rgba(121, 40, 202, 0.25);
+      animation: slideUp 0.3s ease;
+    }
+    .profile-header {
+      padding: 25px 30px 15px; background: rgba(121,40,202,0.1);
+      border-bottom: 1px solid rgba(121,40,202,0.3);
+    }
+    .profile-header h3 { margin: 0; color: #fff; font-size: 1.2rem; }
+    .profile-body { padding: 25px 30px 30px; }
+    .profile-edit-btn {
+      background: none; border: 1px solid var(--neon-purple); color: var(--neon-purple);
+      padding: 6px 14px; border-radius: 8px; cursor: pointer; font-size: 0.8rem;
+      transition: all 0.2s; margin-left: 10px;
+    }
+    .profile-edit-btn:hover { background: rgba(121,40,202,0.2); }
+    @keyframes slideUp {
+      from { transform: translateY(30px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
   </style>
 
   <div class="pay-modal" id="payModal">
@@ -676,6 +706,29 @@
           Enviar Comprobante
         </button>
         <button onclick="document.getElementById('payModal').classList.remove('show')" style="background:none; border:none; color:#666; margin-top:15px; cursor:pointer;">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL DE PERFIL DE DOCENTE -->
+  <div class="profile-modal" id="profileModal">
+    <div class="profile-modal-content">
+      <div class="profile-header">
+        <h3>👤 Mi Perfil de Docente</h3>
+        <p style="color:#aaa; font-size:0.85rem; margin:5px 0 0;">Estos datos aparecerán en tus planeamientos generados.</p>
+      </div>
+      <div class="profile-body">
+        <label class="planner-label">Dirección Regional</label>
+        <input type="text" id="profRegional" class="planner-input" placeholder="Ej: Guápiles, Limón, Heredia...">
+
+        <label class="planner-label">Nombre completo de la persona docente</label>
+        <input type="text" id="profNombre" class="planner-input" placeholder="Ej: Wendy González Víquez">
+
+        <label class="planner-label">Centro Educativo</label>
+        <input type="text" id="profCentro" class="planner-input" placeholder="Ej: Liceo Académico de Cariari">
+
+        <button id="btnSaveProfile" class="btn-generate">💾 Guardar y continuar</button>
+        <div id="profileMsg" style="margin-top:12px; text-align:center; font-size:0.85rem; color:var(--neon-cyan); display:none;"></div>
       </div>
     </div>
   </div>
@@ -838,6 +891,72 @@
     let userEmail = localStorage.getItem('mep_user_email') || "";
     if(userEmail) userEmailInput.value = userEmail;
 
+    // --- PERFIL DE DOCENTE ---
+    let userProfile = {
+      nombre: localStorage.getItem('prof_nombre') || '',
+      centroEducativo: localStorage.getItem('prof_centro') || '',
+      direccionRegional: localStorage.getItem('prof_regional') || ''
+    };
+
+    const profileModal = document.getElementById('profileModal');
+
+    async function loadProfileFromServer(email) {
+      try {
+        const r = await fetch(`/api/get-profile?email=${encodeURIComponent(email)}`);
+        if (r.ok) {
+          const d = await r.json();
+          userProfile.nombre = d.nombre || userProfile.nombre;
+          userProfile.centroEducativo = d.centroEducativo || userProfile.centroEducativo;
+          userProfile.direccionRegional = d.direccionRegional || userProfile.direccionRegional;
+          localStorage.setItem('prof_nombre', userProfile.nombre);
+          localStorage.setItem('prof_centro', userProfile.centroEducativo);
+          localStorage.setItem('prof_regional', userProfile.direccionRegional);
+        }
+      } catch(e) { console.warn('No se pudo cargar perfil:', e); }
+    }
+
+    function openProfileModal(onSave) {
+      document.getElementById('profNombre').value = userProfile.nombre;
+      document.getElementById('profCentro').value = userProfile.centroEducativo;
+      document.getElementById('profRegional').value = userProfile.direccionRegional;
+      document.getElementById('profileMsg').style.display = 'none';
+      profileModal.classList.add('show');
+      document.getElementById('btnSaveProfile').onclick = async () => {
+        const nombre = document.getElementById('profNombre').value.trim();
+        const centro = document.getElementById('profCentro').value.trim();
+        const regional = document.getElementById('profRegional').value.trim();
+        if (!nombre || !centro || !regional) {
+          document.getElementById('profileMsg').style.display = 'block';
+          document.getElementById('profileMsg').innerText = '⚠️ Por favor completa todos los campos.';
+          document.getElementById('profileMsg').style.color = 'var(--neon-magenta)';
+          return;
+        }
+        userProfile = { nombre, centroEducativo: centro, direccionRegional: regional };
+        localStorage.setItem('prof_nombre', nombre);
+        localStorage.setItem('prof_centro', centro);
+        localStorage.setItem('prof_regional', regional);
+        // Guardar en servidor
+        try {
+          await fetch('/api/save-profile', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: userEmail, nombre, centroEducativo: centro, direccionRegional: regional })
+          });
+        } catch(e) { console.warn('No se pudo guardar perfil en servidor:', e); }
+        document.getElementById('profileMsg').style.display = 'block';
+        document.getElementById('profileMsg').innerText = '✅ Perfil guardado correctamente.';
+        document.getElementById('profileMsg').style.color = 'var(--neon-cyan)';
+        setTimeout(() => {
+          profileModal.classList.remove('show');
+          if (typeof onSave === 'function') onSave();
+        }, 800);
+      };
+    }
+
+    function isProfileComplete() {
+      return userProfile.nombre && userProfile.centroEducativo && userProfile.direccionRegional;
+    }
+
     document.getElementById('openPlannerBtn').onclick = async () => {
       if(!userEmail) {
         payModal.classList.add('show');
@@ -854,8 +973,14 @@
         const data = await resp.json();
         
         if(data.hasAccess) {
+          await loadProfileFromServer(userEmail);
           document.getElementById('plTema').value = "";
-          plannerModal.classList.add('show');
+          if (!isProfileComplete()) {
+            // Pedir perfil antes de abrir el planeador
+            openProfileModal(() => { plannerModal.classList.add('show'); });
+          } else {
+            plannerModal.classList.add('show');
+          }
         } else {
           if(data.expired) {
             document.getElementById('payModalMsg').innerHTML = "<span style='color:var(--neon-magenta);'>¡Tu acceso ha vencido!</span><br>Paga la renovación para seguir usando el creador otros 3 meses.";
@@ -884,7 +1009,12 @@
       
       if(data.hasAccess) {
         payModal.classList.remove('show');
-        plannerModal.classList.add('show');
+        await loadProfileFromServer(userEmail);
+        if (!isProfileComplete()) {
+          openProfileModal(() => { plannerModal.classList.add('show'); });
+        } else {
+          plannerModal.classList.add('show');
+        }
       } else {
         if(data.expired) {
           document.getElementById('payModalMsg').innerHTML = "<span style='color:var(--neon-magenta);'>¡Tu acceso ha vencido!</span><br>Paga la renovación para seguir usando el creador otros 3 meses.";
@@ -900,6 +1030,13 @@
     };
 
     document.getElementById('closePlannerBtn').onclick = () => plannerModal.classList.remove('show');
+
+    // Botón "Editar mi perfil" en el header del planeador
+    const editProfileBtn = document.createElement('button');
+    editProfileBtn.className = 'profile-edit-btn';
+    editProfileBtn.innerHTML = '✏️ Mi perfil';
+    editProfileBtn.onclick = () => openProfileModal(null);
+    document.querySelector('.planner-header > div').appendChild(editProfileBtn);
 
 
     // Manejar éxito de pago (URL params)
@@ -931,7 +1068,10 @@
             tema, 
             instruccionesExtra: extra, 
             apiKey,
-            email: userEmail
+            email: userEmail,
+            nombre: userProfile.nombre,
+            centroEducativo: userProfile.centroEducativo,
+            direccionRegional: userProfile.direccionRegional
           })
         });
 

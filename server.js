@@ -41,6 +41,52 @@ function markAsPaid(email) {
   fs.writeFileSync(paidUsersFile, JSON.stringify(users));
 }
 
+// --- PERFIL DE DOCENTE ---
+app.post('/api/save-profile', (req, res) => {
+  const { email, nombre, centroEducativo, direccionRegional } = req.body;
+  if (!email) return res.status(400).json({ error: 'Email requerido.' });
+
+  const users = getPaidUsers();
+  const cleanEmail = email.toLowerCase();
+  const idx = users.findIndex(u => u.email === cleanEmail);
+
+  // El dueño siempre puede guardar perfil aunque no esté en la lista
+  if (idx > -1) {
+    users[idx].nombre = nombre || users[idx].nombre || '';
+    users[idx].centroEducativo = centroEducativo || users[idx].centroEducativo || '';
+    users[idx].direccionRegional = direccionRegional || users[idx].direccionRegional || '';
+    fs.writeFileSync(paidUsersFile, JSON.stringify(users));
+    return res.json({ success: true });
+  } else if (cleanEmail === OWNER_EMAIL.toLowerCase()) {
+    // Dueño: guardar perfil en un registro temporal
+    users.push({ email: cleanEmail, expiresAt: new Date(9999,0,1).toISOString(), nombre, centroEducativo, direccionRegional });
+    fs.writeFileSync(paidUsersFile, JSON.stringify(users));
+    return res.json({ success: true });
+  }
+
+  res.status(403).json({ error: 'Usuario no registrado.' });
+});
+
+app.get('/api/get-profile', (req, res) => {
+  const email = (req.query.email || '').toLowerCase();
+  if (!email) return res.status(400).json({ error: 'Email requerido.' });
+
+  const users = getPaidUsers();
+  const user = users.find(u => u.email === email);
+  if (user) {
+    return res.json({
+      nombre: user.nombre || '',
+      centroEducativo: user.centroEducativo || '',
+      direccionRegional: user.direccionRegional || ''
+    });
+  }
+  // Si es el dueño pero no está aún en el archivo
+  if (email === OWNER_EMAIL.toLowerCase()) {
+    return res.json({ nombre: '', centroEducativo: '', direccionRegional: '' });
+  }
+  res.status(404).json({ error: 'Perfil no encontrado.' });
+});
+
 // Middleware para verificar acceso
 function checkAccess(req, res, next) {
   const { email } = req.body;
@@ -233,7 +279,11 @@ async function loadMEPContent() {
 // RUTA PROTEGIDA CON checkAccess
 app.post('/api/generate-plan', checkAccess, async (req, res) => {
   try {
-    const { nivel, tema, instruccionesExtra, apiKey } = req.body;
+    const { nivel, tema, instruccionesExtra, apiKey, nombre, centroEducativo, direccionRegional } = req.body;
+    // Datos del perfil del docente (con fallback por si no se enviaron)
+    const docente = nombre || 'Docente';
+    const centro = centroEducativo || '________________________________';
+    const regional = direccionRegional || '________________________________';
 
     
     if (!nivel || !tema || !apiKey) {
@@ -245,9 +295,6 @@ app.post('/api/generate-plan', checkAccess, async (req, res) => {
     const systemInstruction = `Eres un experto pedagogo del MEP Costa Rica. Crea un planeamiento de Artes Plásticas basado en el programa oficial. 
       Tu respuesta debe ser un objeto JSON con esta estructura:
       {
-        "regional": "Guápiles",
-        "centro": "Liceo Académico de Cariari",
-        "docente": "Wendy González Víquez",
         "competenciaEspecifica": "Autoexpresión y apreciación estética a través de [tema].",
         "aprendizajes": ["Aprendizaje 1", "Aprendizaje 2"],
         "mediacion": {
@@ -293,13 +340,13 @@ app.post('/api/generate-plan', checkAccess, async (req, res) => {
 
     // --- TABLA DE ENCABEZADO (3 FILAS) ---
     doc.rect(30, curY, halfW, rowH).stroke();
-    doc.fontSize(8).font('Helvetica-Bold').text('Dirección Regional de Guápiles', 35, curY + 12);
+    doc.fontSize(8).font('Helvetica-Bold').text('Dirección Regional de: ', 35, curY + 12, { continued: true }).font('Helvetica').text(regional);
     doc.rect(30 + halfW, curY, halfW, rowH).stroke();
-    doc.text('Centro educativo: ', 35 + halfW, curY + 12, { continued: true }).font('Helvetica').text(plan.centro);
+    doc.font('Helvetica-Bold').text('Centro educativo: ', 35 + halfW, curY + 12, { continued: true }).font('Helvetica').text(centro);
     
     curY += rowH;
     doc.rect(30, curY, halfW, rowH + 10).stroke();
-    doc.font('Helvetica-Bold').text('Nombre de la persona docente: ', 35, curY + 15, { continued: true }).font('Helvetica').text(plan.docente);
+    doc.font('Helvetica-Bold').text('Nombre de la persona docente: ', 35, curY + 15, { continued: true }).font('Helvetica').text(docente);
     doc.rect(30 + halfW, curY, halfW, rowH + 10).stroke();
     doc.font('Helvetica-Bold').text('Asignatura, módulo, disciplina, especialidad, componente, área o subárea: ', 35 + halfW, curY + 5, { width: halfW - 10 }).font('Helvetica').text('Artes Plásticas');
     
