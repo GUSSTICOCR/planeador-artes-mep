@@ -3,9 +3,11 @@ import cors from 'cors';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import pdfParse from 'pdf-parse/lib/pdf-parse.js';
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
+const pdfParse = require('pdf-parse');
 import { GoogleGenerativeAI } from '@google/generative-ai';
-import PDFDocument from 'pdfkit';
+import puppeteer from 'puppeteer';
 import 'dotenv/config';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -322,109 +324,187 @@ app.post('/api/generate-plan', checkAccess, async (req, res) => {
     // USAR HELPER CON LIMPIEZA DE KEY
     const plan = await generateWithFallback(apiKey, promptText, true);
 
-    // --- GENERACIÓN DE PDF REPLICA WORD MEP ---
+    // --- GENERACIÓN DE PDF REPLICA WORD MEP (VÍA HTML + PUPPETEER) ---
     const pdfFileName = `Planeamiento_Oficial_${nivel}_${tema.replace(/\s+/g, '_')}.pdf`;
-    const doc = new PDFDocument({ margin: 30, size: 'A4' });
     const pdfPath = path.join(__dirname, pdfFileName);
-    const writeStream = fs.createWriteStream(pdfPath);
     
-    doc.pipe(writeStream);
+    const medText = `<strong>Lista de materiales:</strong><br>${plan.mediacion.materiales.map((m, i) => `${i+1}. ${m}`).join('<br>')}<br><br><strong>Focalización:</strong><br>${plan.mediacion.focalizacion}<br><br><strong>Exploración:</strong><br>${plan.mediacion.exploracion}<br><br><strong>Aplicación:</strong><br>${plan.mediacion.aplicacion}`;
     
-    // Título Superior
-    doc.fontSize(10).font('Helvetica-Bold').text('PLANTILLA DE PLANEAMIENTO DIDÁCTICO DE Artes Plásticas de III CICLO Y EDUCACION DIVERSIFICADA', { align: 'left' });
-    doc.moveDown(0.5);
+    const htmlContent = `
+    <!DOCTYPE html>
+    <html lang="es">
+    <head>
+      <meta charset="UTF-8">
+      <style>
+        body {
+          font-family: 'Helvetica', 'Arial', sans-serif;
+          font-size: 11px;
+          margin: 0;
+          padding: 0;
+          color: #000;
+        }
+        .container {
+          padding: 20px;
+        }
+        h1 {
+          font-size: 13px;
+          font-weight: bold;
+          text-align: left;
+          margin-bottom: 20px;
+        }
+        table {
+          width: 100%;
+          border-collapse: collapse;
+          margin-bottom: 15px;
+          page-break-inside: auto;
+        }
+        tr, td, th { page-break-inside: auto; }
+        th, td {
+          border: 1px solid #000;
+          padding: 6px;
+          vertical-align: top;
+        }
+        th {
+          background-color: #d9d9d9 !important;
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
+          font-weight: bold;
+          text-align: center;
+        }
+        .header-table td {
+          font-size: 10px;
+          padding: 8px;
+        }
+        strong { font-weight: bold; }
+        .competencias-table th { background-color: transparent !important; border: none; font-size: 12px; text-align: left; padding-left: 0; }
+        .competencias-list td { text-align: left; padding: 10px; font-size: 10px; }
+        
+        .main-table { table-layout: fixed; }
+        .main-table th:nth-child(1), .main-table td:nth-child(1) { width: 25%; }
+        .main-table th:nth-child(2), .main-table td:nth-child(2) { width: 50%; }
+        .main-table th:nth-child(3), .main-table td:nth-child(3) { width: 25%; }
+        
+        .main-table td { font-size: 10px; line-height: 1.4; white-space: pre-wrap; }
+        
+        .observaciones {
+          border: 1px solid #000;
+          height: 150px;
+          padding: 10px;
+          margin-top: 20px;
+          position: relative;
+          page-break-inside: avoid;
+        }
+        .observaciones-title {
+          font-weight: bold;
+          font-size: 11px;
+          margin-bottom: 5px;
+        }
+        .linea {
+          border-bottom: 1px solid #ccc;
+          height: 12px;
+          margin-top: 2px;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <h1>PLANTILLA DE PLANEAMIENTO DIDÁCTICO DE Artes Plásticas de III CICLO Y EDUCACION DIVERSIFICADA</h1>
+        
+        <table class="header-table">
+          <tr>
+            <td width="50%"><strong>Dirección Regional de:</strong> ${regional}</td>
+            <td width="50%"><strong>Centro educativo:</strong> ${centro}</td>
+          </tr>
+          <tr>
+            <td><strong>Nombre de la persona docente:</strong> ${docente}</td>
+            <td><strong>Asignatura, módulo, disciplina, especialidad, componente, área o subárea:</strong> Artes Plásticas</td>
+          </tr>
+          <tr>
+            <td><strong>Nivel:</strong> ${nivel}</td>
+            <td style="padding: 0; border: none;">
+              <table style="margin: 0; border: none; border-collapse: collapse; width: 100%; height: 100%;">
+                <tr>
+                  <td style="border: 1px solid #000; border-top: none; border-bottom: none; border-left: none; width: 50%;"><strong>Curso lectivo:</strong> 2026</td>
+                  <td style="border: none; width: 50%; font-size: 9px;"><strong>Periodicidad:</strong><br>( ) mes ( ) bimestre ( ) trimestre ( ) semestre</td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+        
+        <table class="competencias-table" style="margin-bottom: 5px;">
+          <tr>
+            <th><strong>Competencia general (marque con una equis):</strong></th>
+          </tr>
+        </table>
+        
+        <table class="competencias-list">
+          <tr>
+            <td width="33%">( ) Ciudadanía responsable y solidaria</td>
+            <td width="33%">( ) Competencias para la vida</td>
+            <td width="34%">( ) Competencias para la empleabilidad digna</td>
+          </tr>
+        </table>
+        
+        <div style="margin-bottom: 15px;">
+          <strong>Competencia específica:</strong><br>
+          <span style="font-size: 11px;">${plan.competenciaEspecifica}</span>
+        </div>
 
-    let curY = doc.y;
-    const halfW = 265;
-    const rowH = 35;
+        <table class="main-table">
+          <thead>
+            <tr>
+              <th>Aprendizajes Esperados</th>
+              <th>Estrategias de Mediación (Actividades Sugeridas)</th>
+              <th>Indicadores de Evaluación</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>${plan.aprendizajes.join('<br><br>')}</td>
+              <td style="white-space: normal;">${medText}</td>
+              <td>${plan.indicadores.join('<br><br>')}</td>
+            </tr>
+          </tbody>
+        </table>
 
-    // --- TABLA DE ENCABEZADO (3 FILAS) ---
-    doc.rect(30, curY, halfW, rowH).stroke();
-    doc.fontSize(8).font('Helvetica-Bold').text('Dirección Regional de: ', 35, curY + 12, { continued: true }).font('Helvetica').text(regional);
-    doc.rect(30 + halfW, curY, halfW, rowH).stroke();
-    doc.font('Helvetica-Bold').text('Centro educativo: ', 35 + halfW, curY + 12, { continued: true }).font('Helvetica').text(centro);
-    
-    curY += rowH;
-    doc.rect(30, curY, halfW, rowH + 10).stroke();
-    doc.font('Helvetica-Bold').text('Nombre de la persona docente: ', 35, curY + 15, { continued: true }).font('Helvetica').text(docente);
-    doc.rect(30 + halfW, curY, halfW, rowH + 10).stroke();
-    doc.font('Helvetica-Bold').text('Asignatura, módulo, disciplina, especialidad, componente, área o subárea: ', 35 + halfW, curY + 5, { width: halfW - 10 }).font('Helvetica').text('Artes Plásticas');
-    
-    curY += rowH + 10;
-    doc.rect(30, curY, halfW, rowH).stroke();
-    doc.font('Helvetica-Bold').text('Nivel: ', 35, curY + 12, { continued: true }).font('Helvetica').text(nivel);
-    doc.rect(30 + halfW, curY, halfW / 2, rowH).stroke();
-    doc.font('Helvetica-Bold').text('Curso lectivo: ', 35 + halfW, curY + 12, { continued: true }).font('Helvetica').text('2026');
-    doc.rect(30 + halfW + (halfW / 2), curY, halfW / 2, rowH).stroke();
-    doc.fontSize(7).font('Helvetica-Bold').text('Periodicidad:', 35 + halfW + (halfW / 2), curY + 3);
-    doc.text('( ) mes ( ) bimestre ( ) trimestre ( ) semestre', 35 + halfW + (halfW / 2), curY + 15);
-    
-    curY += rowH + 15;
-    doc.y = curY;
-    doc.fontSize(9).font('Helvetica-Bold').text('Competencia general (marque con una equis):');
-    doc.moveDown(0.3);
-    
-    let compY = doc.y;
-    const compW = 176;
-    doc.rect(30, compY, compW, rowH).stroke();
-    doc.fontSize(8).font('Helvetica').text('( )    Ciudadanía responsable y\n        solidaria', 35, compY + 8);
-    doc.rect(30 + compW, compY, compW, rowH).stroke();
-    doc.font('Helvetica').text('( )    Competencias\n        para la vida', 35 + compW, compY + 8);
-    doc.rect(30 + (compW * 2), compY, compW, rowH).stroke();
-    doc.font('Helvetica').text('( )    Competencias para la\n        empleabilidad digna', 35 + (compW * 2), compY + 8);
-    
-    curY = compY + rowH + 15;
-    doc.fontSize(9).font('Helvetica-Bold').text('Competencia específica:', 35, curY);
-    doc.font('Helvetica').text(plan.competenciaEspecifica, 35, doc.y + 2);
-    doc.moveDown(1);
+        <div class="observaciones">
+          <div class="observaciones-title">OBSERVACIONES:</div>
+          <div class="linea"></div>
+          <div class="linea"></div>
+          <div class="linea"></div>
+          <div class="linea"></div>
+          <div class="linea"></div>
+          <div class="linea"></div>
+          <div class="linea"></div>
+          <div class="linea"></div>
+          <div class="linea"></div>
+          <div class="linea"></div>
+        </div>
+      </div>
+    </body>
+    </html>
+    `;
 
-    const tableTop = doc.y;
-    const c1 = 140, c2 = 250, c3 = 140;
-    doc.rect(30, tableTop, 530, 30).fill('#d9d9d9').stroke();
-    doc.fillColor('#000000').font('Helvetica-Bold').fontSize(9);
-    doc.text('Aprendizajes Esperados', 35, tableTop + 10, { width: c1 - 10, align: 'center' });
-    doc.text('Estrategias de Mediación (Actividades Sugeridas)', 35 + c1, tableTop + 5, { width: c2 - 10, align: 'center' });
-    doc.text('Indicadores de Evaluación', 35 + c1 + c2, tableTop + 10, { width: c3 - 10, align: 'center' });
-
-    const bodyY = tableTop + 30;
-    const medText = `Lista de materiales:\n${plan.mediacion.materiales.map((m, i) => `${i+1}. ${m}`).join('\n')}\n\nFocalización: ${plan.mediacion.focalizacion}\n\nExploración: ${plan.mediacion.exploracion}\n\nAplicación: ${plan.mediacion.aplicacion}`;
+    const browser = await puppeteer.launch({ headless: 'new', args: ['--no-sandbox', '--disable-setuid-sandbox'] });
+    const page = await browser.newPage();
+    await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
     
-    const h = Math.max(
-      doc.heightOfString(plan.aprendizajes.join('\n\n'), { width: c1 - 10 }),
-      doc.heightOfString(medText, { width: c2 - 10 }),
-      doc.heightOfString(plan.indicadores.join('\n\n'), { width: c3 - 10 })
-    ) + 30;
-
-    doc.rect(30, bodyY, c1, h).stroke();
-    doc.rect(30 + c1, bodyY, c2, h).stroke();
-    doc.rect(30 + c1 + c2, bodyY, c3, h).stroke();
-
-    doc.font('Helvetica').fontSize(8);
-    // IMPORTANTE: Todas las columnas deben empezar en bodyY + 10 para estar alineadas arriba
-    doc.text(plan.aprendizajes.join('\n\n'), 35, bodyY + 10, { width: c1 - 10 });
-    doc.text(medText, 35 + c1, bodyY + 10, { width: c2 - 10 });
-    doc.text(plan.indicadores.join('\n\n'), 35 + c1 + c2, bodyY + 10, { width: c3 - 10 });
-
-    // --- RECUADRO DE OBSERVACIONES ---
-    doc.y = bodyY + h + 20;
-    if (doc.y > 700) doc.addPage();
-    
-    curY = doc.y;
-    doc.rect(30, curY, 530, 150).stroke(); // Recuadro de ~10 renglones
-    doc.font('Helvetica-Bold').fontSize(9).text('OBSERVACIONES:', 35, curY + 10);
-    
-    // Dibujar 10 líneas tenues para escribir
-    doc.strokeColor('#cccccc').lineWidth(0.5);
-    for (let i = 1; i <= 10; i++) {
-      let lineY = curY + 25 + (i * 12);
-      doc.moveTo(35, lineY).lineTo(555, lineY).stroke();
-    }
-    doc.strokeColor('#000000').lineWidth(1.0); // Reset
-
-    doc.end();
-    writeStream.on('finish', () => {
-      res.json({ success: true, plan: plan, pdfUrl: `/${pdfFileName}` });
+    await page.pdf({
+      path: pdfPath,
+      format: 'A4',
+      margin: {
+        top: '20px',
+        right: '20px',
+        bottom: '20px',
+        left: '20px'
+      },
+      printBackground: true
     });
+    
+    await browser.close();
+
+    res.json({ success: true, plan: plan, pdfUrl: `/${pdfFileName}` });
   } catch (error) {
     console.error('ERROR DETALLADO EN GENERACIÓN:', error);
     res.status(500).json({ 
