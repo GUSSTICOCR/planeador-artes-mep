@@ -518,8 +518,7 @@ app.post('/api/generate-plan', checkAccess, async (req, res) => {
 
     const browser = await puppeteer.launch({ 
       headless: 'new', 
-      executablePath: '/usr/bin/google-chrome',
-      args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'] 
+      args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--disable-gpu'] 
     });
     const page = await browser.newPage();
     await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
