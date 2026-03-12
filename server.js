@@ -166,6 +166,24 @@ app.post('/api/activate-user-manually', (req, res) => {
   res.status(403).json({ error: 'No autorizado.' });
 });
 
+// Endpoint para el panel de administración: listar usuarios
+app.post('/api/list-users', (req, res) => {
+  const { masterKey } = req.body;
+  if (masterKey === process.env.API_KEY_GEMINI) {
+    const users = getPaidUsers();
+    
+    // Ordenar alfabéticamente (primero por nombre, si no hay, por email)
+    users.sort((a, b) => {
+      const nameA = a.nombre || a.email || '';
+      const nameB = b.nombre || b.email || '';
+      return nameA.localeCompare(nameB, 'es', { sensitivity: 'base' });
+    });
+    
+    return res.json({ success: true, users });
+  }
+  res.status(403).json({ error: 'No autorizado.' });
+});
+
 
 // --- SOLUCIÓN NUCLEAR: AUTO-DESCUBRIMIENTO Y FALLBACK REST ---
 async function generateWithFallback(apiKey, prompt, isJson = false) {

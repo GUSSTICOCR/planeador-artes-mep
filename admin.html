@@ -15,6 +15,9 @@
         #status { margin-top: 20px; text-align: center; font-size: 0.9rem; padding: 10px; border-radius: 5px; display: none; }
         .success { background: rgba(0,255,0,0.1); color: #00ff00; display: block !important; }
         .error { background: rgba(255,0,0,0.1); color: #ff4d4d; display: block !important; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #16213e; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
     </style>
 </head>
 <body>
@@ -28,9 +31,17 @@
         <label for="masterKey">Clave Maestra (Tu API Key de Gemini)</label>
         <input type="password" id="masterKey" placeholder="Pega tu clave aquí">
         
-        <button id="btnActivate">Activar Acceso (90 Días)</button>
+        <div style="display: flex; gap: 10px; margin-top: 25px;">
+            <button id="btnActivate" style="margin-top: 0; flex: 1;">Activar Acceso</button>
+            <button id="btnListUsers" style="margin-top: 0; flex: 1; background: #ff007f;">Ver Clientes</button>
+        </div>
         
         <div id="status"></div>
+
+        <div id="usersListSection" style="margin-top: 30px; display: none;">
+            <h2 style="font-size: 1.1rem; color: #fff; text-align: center; border-bottom: 1px solid #333; padding-bottom: 10px; margin-bottom: 15px;">Clientes Registrados</h2>
+            <div id="usersList" style="max-height: 250px; overflow-y: auto; text-align: left; font-size: 0.85rem; padding-right: 5px;"></div>
+        </div>
     </div>
 
     <script>
@@ -66,6 +77,76 @@
                 }
             } catch (err) {
                 statusDiv.innerText = "❌ Error de conexión con el servidor.";
+                statusDiv.className = "error";
+            }
+        };
+
+        document.getElementById('btnListUsers').onclick = async () => {
+            const masterKey = document.getElementById('masterKey').value.trim();
+            const statusDiv = document.getElementById('status');
+            const usersSection = document.getElementById('usersListSection');
+            const usersList = document.getElementById('usersList');
+            
+            if(!masterKey) {
+                alert("Por favor ingresa tu Clave Maestra primero.");
+                return;
+            }
+
+            statusDiv.innerText = "Cargando clientes...";
+            statusDiv.className = "";
+            usersSection.style.display = "none";
+
+            try {
+                const response = await fetch('/api/list-users', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ masterKey })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    statusDiv.innerText = "";
+                    statusDiv.className = "";
+                    usersList.innerHTML = "";
+                    
+                    if (data.users && data.users.length > 0) {
+                        data.users.forEach((user, index) => {
+                            const dateObj = new Date(user.expiresAt);
+                            const dateStr = dateObj.toLocaleDateString('es-CR', { year: 'numeric', month: 'short', day: 'numeric' });
+                            const isExpired = dateObj < new Date();
+                            const statusColor = isExpired ? "#ff4d4d" : "#00ff00";
+                            const statusText = isExpired ? "Vencido" : "Activo";
+                            
+                            // Ignorar usuarios vitalicios super-lejanos en el tiempo (dueño)
+                            if (dateObj.getFullYear() > 2100) return;
+                            
+                            const displayName = user.nombre ? user.nombre : "Sin nombre registrado";
+                            const displayEmail = user.email;
+                            const center = user.centroEducativo ? user.centroEducativo : "Sin centro";
+                            
+                            usersList.innerHTML += `
+                                <div style="background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px; margin-bottom: 8px; border-left: 3px solid ${statusColor};">
+                                    <strong style="color: #fff; font-size: 0.9rem;">${index + 1}. ${displayName}</strong><br>
+                                    <span style="color: #ccc;">✉️ ${displayEmail}</span><br>
+                                    <span style="color: #999; font-size: 0.8rem;">🏫 ${center}</span><br>
+                                    <span style="color: #888; font-size: 0.8rem; margin-top: 5px; display: block;">
+                                        ⏳ Vence: ${dateStr} (<span style="color: ${statusColor}; font-weight: bold;">${statusText}</span>)
+                                    </span>
+                                </div>
+                            `;
+                        });
+                    } else {
+                        usersList.innerHTML = "<p style='text-align:center; color:#ccc;'>No hay clientes registrados aún.</p>";
+                    }
+                    
+                    usersSection.style.display = "block";
+                } else {
+                    statusDiv.innerText = "❌ Error: " + (data.error || "No se cargaron los clientes.");
+                    statusDiv.className = "error";
+                }
+            } catch (err) {
+                statusDiv.innerText = "❌ Error de conexión al servidor.";
                 statusDiv.className = "error";
             }
         };
