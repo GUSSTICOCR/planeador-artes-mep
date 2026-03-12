@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "start": "node server.js",
-    "render-build": "PUPPETEER_CACHE_DIR=.cache/puppeteer npm install && npx puppeteer browsers install chrome --path .cache/puppeteer"
+    "render-build": "npm install && npx puppeteer browsers install chrome"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",

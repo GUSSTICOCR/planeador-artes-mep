@@ -8,6 +8,7 @@ const require = createRequire(import.meta.url);
 const pdfParse = require('pdf-parse');
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import puppeteer from 'puppeteer';
+import { executablePath } from 'puppeteer';
 import 'dotenv/config';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -504,7 +505,11 @@ app.post('/api/generate-plan', checkAccess, async (req, res) => {
     </html>
     `;
 
-    const browser = await puppeteer.launch({ headless: 'new', args: ['--no-sandbox', '--disable-setuid-sandbox'] });
+    const browser = await puppeteer.launch({ 
+      headless: 'new', 
+      executablePath: executablePath(),
+      args: ['--no-sandbox', '--disable-setuid-sandbox', '--single-process', '--no-zygote'] 
+    });
     const page = await browser.newPage();
     await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
     
