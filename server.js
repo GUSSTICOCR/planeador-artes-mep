@@ -454,8 +454,8 @@ app.post('/api/generate-plan', checkAccess, async (req, res) => {
             <td style="padding: 0; border: none;">
               <table style="margin: 0; border: none; border-collapse: collapse; width: 100%; height: 100%;">
                 <tr>
-                  <td style="border: 1px solid #000; border-top: none; border-bottom: none; border-left: none; width: 50%;"><strong>Curso lectivo:</strong> 2026</td>
-                  <td style="border: none; width: 50%; font-size: 9px;"><strong>Periodicidad:</strong><br>( ) mes ( ) bimestre ( ) trimestre ( ) semestre</td>
+                  <td style="border: 1px solid #000; border-top: none; border-bottom: none; border-left: none; width: 50%;"><strong>Curso lectivo:</strong> <span style="display:inline-block; border-bottom: 1px solid #000; width: 50px; text-align: center;">2026</span></td>
+                  <td style="border: none; width: 50%; font-size: 9px;"><strong>Periodicidad:</strong> <span style="display:inline-block; border-bottom: 1px solid #000; width: 80px;"></span><br>( ) mes ( ) bimestre ( ) trimestre ( ) semestre</td>
                 </tr>
               </table>
             </td>
