@@ -535,10 +535,9 @@
       
       <div class="planner-body">
         <div class="planner-form">
-          <p style="margin-top: 0; color: #ccc;">Proporciona tu clave y los datos del planeamiento. Gemini estructurará la clase basándose en el MEP.</p>
+          <p style="margin-top: 0; color: #ccc;">Simplemente proporciona los datos del planeamiento. Gemini estructurará la clase basándose en el MEP.</p>
 
-          <label class="planner-label">Clave API de Gemini</label>
-          <input type="password" id="plApiKey" class="planner-input" placeholder="Pega tu API Key aquí..." style="border-color: var(--neon-magenta);">
+          <!-- apiKey section removed -->
           
           <label class="planner-label">Nivel Educativo</label>
           <select id="plNivel" class="planner-input">
@@ -1047,12 +1046,11 @@
     }
 
     btnGeneratePlan.onclick = async () => {
-      const apiKey = document.getElementById('plApiKey').value.trim();
       const nivel = document.getElementById('plNivel').value;
       const tema = document.getElementById('plTema').value.trim();
       const extra = document.getElementById('plExtra').value.trim();
       
-      if(!apiKey || !tema) { alert("⚠️ Completa API y Tema"); return; }
+      if(!tema) { alert("⚠️ Completa el Tema"); return; }
       
       planEmptyState.style.display = 'none';
       planOutput.style.display = 'none';
@@ -1067,7 +1065,6 @@
             nivel, 
             tema, 
             instruccionesExtra: extra, 
-            apiKey,
             email: userEmail,
             nombre: userProfile.nombre,
             centroEducativo: userProfile.centroEducativo,

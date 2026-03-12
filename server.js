@@ -281,15 +281,15 @@ async function loadMEPContent() {
 // RUTA PROTEGIDA CON checkAccess
 app.post('/api/generate-plan', checkAccess, async (req, res) => {
   try {
-    const { nivel, tema, instruccionesExtra, apiKey, nombre, centroEducativo, direccionRegional } = req.body;
+    const { nivel, tema, instruccionesExtra, nombre, centroEducativo, direccionRegional } = req.body;
     // Datos del perfil del docente (con fallback por si no se enviaron)
     const docente = nombre || 'Docente';
     const centro = centroEducativo || '________________________________';
     const regional = direccionRegional || '________________________________';
 
     
-    if (!nivel || !tema || !apiKey) {
-      return res.status(400).json({ error: 'Nivel, Tema y API Key son requeridos.' });
+    if (!nivel || !tema) {
+      return res.status(400).json({ error: 'Nivel y Tema son requeridos.' });
     }
 
     const mepText = await loadMEPContent();
@@ -322,7 +322,7 @@ app.post('/api/generate-plan', checkAccess, async (req, res) => {
     console.log(`Pidiendo a Gemini: Planeamiento Estructurado para ${nivel} - ${tema}...`);
     
     // USAR HELPER CON LIMPIEZA DE KEY
-    const plan = await generateWithFallback(apiKey, promptText, true);
+    const plan = await generateWithFallback(process.env.API_KEY_GEMINI, promptText, true);
 
     // --- GENERACIÓN DE PDF REPLICA WORD MEP (VÍA HTML + PUPPETEER) ---
     const pdfFileName = `Planeamiento_Oficial_${nivel}_${tema.replace(/\s+/g, '_')}.pdf`;
