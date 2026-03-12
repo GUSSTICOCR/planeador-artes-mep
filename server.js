@@ -343,6 +343,18 @@ app.post('/api/generate-plan', checkAccess, async (req, res) => {
     // USAR HELPER CON LIMPIEZA DE KEY
     const plan = await generateWithFallback(process.env.API_KEY_GEMINI, promptText, true);
 
+    // SANEAR RESPUESTA DE GEMINI PARA EVITAR ERRORES "UNDEFINED"
+    if (!plan) throw new Error("Google Gemini devolvió una respuesta vacía.");
+    plan.competenciaEspecifica = plan.competenciaEspecifica || "Competencia no especificada.";
+    plan.aprendizajes = Array.isArray(plan.aprendizajes) ? plan.aprendizajes : ["(No se encontraron aprendizajes)"];
+    plan.indicadores = Array.isArray(plan.indicadores) ? plan.indicadores : ["(No se encontraron indicadores)"];
+    
+    if (!plan.mediacion) plan.mediacion = {};
+    plan.mediacion.materiales = Array.isArray(plan.mediacion.materiales) ? plan.mediacion.materiales : ["(Materiales no especificados)"];
+    plan.mediacion.focalizacion = plan.mediacion.focalizacion || "Focalización no especificada.";
+    plan.mediacion.exploracion = plan.mediacion.exploracion || "Exploración no especificada.";
+    plan.mediacion.aplicacion = plan.mediacion.aplicacion || "Aplicación no especificada.";
+
     // --- GENERACIÓN DE PDF REPLICA WORD MEP (VÍA HTML + PUPPETEER) ---
     const pdfFileName = `Planeamiento_Oficial_${nivel}_${tema.replace(/\s+/g, '_')}.pdf`;
     const pdfPath = path.join(__dirname, pdfFileName);
