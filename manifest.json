@@ -1,0 +1,21 @@
+{
+  "name": "Wendy González Víquez",
+  "short_name": "Profe Wendy",
+  "description": "Pedagoga y Artista Plástica",
+  "start_url": "./galeria.html",
+  "display": "standalone",
+  "background_color": "#050505",
+  "theme_color": "#050505",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/3075/3075908.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/3075/3075908.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
