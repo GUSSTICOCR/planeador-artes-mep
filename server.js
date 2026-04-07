@@ -453,16 +453,16 @@ app.post('/api/generate-plan', checkAccess, async (req, res) => {
     </head>
     <body>
       <div class="container">
-        <h1>PLANTILLA DE PLANEAMIENTO DIDÁCTICO DE Artes Plásticas de III CICLO Y EDUCACION DIVERSIFICADA</h1>
+        <h1>PLANTILLA DE PLANEAMIENTO DIDÁCTICO DE Artes Plásticas de ${isPrimary ? 'I Y II CICLO' : 'III CICLO Y EDUCACION DIVERSIFICADA'}</h1>
         
         <table class="header-table">
           <tr>
-            <td width="50%"><strong>Dirección Regional de:</strong> ${regional}</td>
-            <td width="50%"><strong>Centro educativo:</strong> ${centro}</td>
+            <td width="50%"><strong>Dirección Regional de:</strong> ${direccionRegional || '________________________________'}</td>
+            <td width="50%"><strong>Centro educativo:</strong> ${centroEducativo || '________________________________'}</td>
           </tr>
           <tr>
-            <td><strong>Nombre de la persona docente:</strong> ${docente}</td>
-            <td><strong>Asignatura, módulo, disciplina, especialidad, componente, área o subárea:</strong> Artes Plásticas</td>
+            <td><strong>Nombre de la persona docente:</strong> ${nombre || '________________________________'}</td>
+            <td><strong>Asignatura:</strong> Artes Plásticas</td>
           </tr>
           <tr>
             <td style="border: 1px solid #000; padding: 6px;"><strong>Nivel:</strong> ${nivel}</td>
@@ -470,12 +470,13 @@ app.post('/api/generate-plan', checkAccess, async (req, res) => {
               <table style="margin: 0; border: none; border-collapse: collapse; width: 100%; height: 100%;">
                 <tr>
                   <td style="border: 1px solid #000; padding: 6px; width: 50%;"><strong>Curso lectivo:</strong> 2026</td>
-                  <td style="border: 1px solid #000; padding: 6px; width: 50%; font-size: 9px;"><strong>Periodicidad:</strong><br>( ) mes ( ) bimestre ( ) trimestre ( ) semestre</td>
+                  <td style="border: 1px solid #000; padding: 6px; width: 50%; font-size: 8px;"><strong>Periodicidad:</strong><br>&nbsp;( ) mes &nbsp; ( ) bimestre &nbsp; ( ) trimestre &nbsp; ( ) semestre</td>
                 </tr>
               </table>
             </td>
           </tr>
         </table>
+
         
         <table class="competencias-table" style="margin-bottom: 5px;">
           <tr>
