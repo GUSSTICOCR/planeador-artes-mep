@@ -279,19 +279,31 @@ async function generateWithFallback(apiKey, prompt, isJson = false) {
   }
 }
 
-let mepContentCache = null;
+let mepSecondaryCache = null;
+let mepPrimaryCache = null;
 
-async function loadMEPContent() {
-  if (mepContentCache) return mepContentCache;
-  const pdfPath = path.join(__dirname, 'programa_estudios_artes_plasticas_mep.pdf');
+async function loadMEPContent(isPrimary = false) {
+  if (isPrimary && mepPrimaryCache) return mepPrimaryCache;
+  if (!isPrimary && mepSecondaryCache) return mepSecondaryCache;
+
+  const fileName = isPrimary 
+    ? path.join(__dirname, 'planeamientos primero y segundo siclo PRIMARIA', 'aplasticas1y2ciclo.pdf') 
+    : path.join(__dirname, 'programa_estudios_artes_plasticas_mep.pdf');
+  
   try {
-    const dataBuffer = fs.readFileSync(pdfPath);
+    const dataBuffer = fs.readFileSync(fileName);
     const data = await pdfParse(dataBuffer);
-    mepContentCache = data.text;
-    console.log('PDF del MEP cargado en memoria exitosamente.');
-    return mepContentCache;
+    if (isPrimary) {
+      mepPrimaryCache = data.text;
+      console.log('PDF de Primaria (1 y 2 ciclo) cargado con éxito.');
+      return mepPrimaryCache;
+    } else {
+      mepSecondaryCache = data.text;
+      console.log('PDF de Secundaria cargado con éxito.');
+      return mepSecondaryCache;
+    }
   } catch (error) {
-    console.error('Error al leer el PDF del MEP:', error);
+    console.error(`Error al leer el PDF (${isPrimary ? 'Primaria' : 'Secundaria'}):`, error);
     return 'Documento MEP no encontrado o no legible.';
   }
 }
@@ -310,9 +322,12 @@ app.post('/api/generate-plan', checkAccess, async (req, res) => {
       return res.status(400).json({ error: 'Nivel y Tema son requeridos.' });
     }
 
-    const mepText = await loadMEPContent();
+    // Determinar si es primaria (1° a 6°) o secundaria (7° a 11/12°)
+    const isPrimary = ['1°', '2°', '3°', '4°', '5°', '6°'].includes(nivel);
+    const mepText = await loadMEPContent(isPrimary);
 
-    const systemInstruction = `Eres un experto pedagogo del MEP Costa Rica. Crea un planeamiento de Artes Plásticas basado en el programa oficial. 
+    const systemInstruction = `Eres un experto pedagogo del MEP Costa Rica, especializado en ${isPrimary ? 'Educación Primaria (I y II Ciclo)' : 'Educación Secundaria'}. 
+      Crea un planeamiento de Artes Plásticas basado en el programa oficial. 
       Tu respuesta debe ser un objeto JSON con esta estructura:
       {
         "competenciaEspecifica": "Autoexpresión y apreciación estética a través de [tema].",

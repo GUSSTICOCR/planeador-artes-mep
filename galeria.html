@@ -638,7 +638,7 @@
             <div class="art-bar-arrow">✨</div>
           </div>
 
-          <!-- Documento PDF MEP -->
+          <!-- Documento PDF MEP SECUNDARIA -->
           <a href="programa_estudios_artes_plasticas_mep.pdf" target="_blank" style="text-decoration: none;">
             <div class="art-bar" style="border-color: var(--neon-magenta); box-shadow: 0 0 15px rgba(255, 0, 127, 0.1);">
               <div class="art-bar-img" style="background: var(--gradient-dynamic); display: flex; align-items: center; justify-content: center;">
@@ -651,12 +651,31 @@
                 </svg>
               </div>
               <div class="art-bar-content">
-                <h3 style="color: var(--neon-magenta);">Programa de Estudios MEP</h3>
-                <p>Haz clic para leer el documento oficial del MEP para Artes Plásticas.</p>
+                <h3 style="color: var(--neon-magenta);">Programa MEP (Colegio)</h3>
+                <p>Haz clic para leer el documento oficial para Secundaria.</p>
               </div>
               <div class="art-bar-arrow" style="color: var(--neon-magenta);">📥</div>
             </div>
           </a>
+
+          <!-- Documento PDF MEP PRIMARIA -->
+          <a href="planeamientos primero y segundo siclo PRIMARIA/aplasticas1y2ciclo.pdf" target="_blank" style="text-decoration: none;">
+            <div class="art-bar" style="border-color: #ffea00; box-shadow: 0 0 15px rgba(255, 234, 0, 0.1);">
+              <div class="art-bar-img" style="background: linear-gradient(135deg, #ffea00, #ffb300); display: flex; align-items: center; justify-content: center;">
+                <svg width="70" height="70" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                  <polyline points="14 2 14 8 20 8"></polyline>
+                  <path d="M16 13H8M16 17H8M10 9H9H8"></path>
+                </svg>
+              </div>
+              <div class="art-bar-content">
+                <h3 style="color: #ffea00;">Programa MEP (Escuela)</h3>
+                <p>Haz clic para leer el documento oficial para Primaria (I y II Ciclo).</p>
+              </div>
+              <div class="art-bar-arrow" style="color: #ffea00;">📥</div>
+            </div>
+          </a>
+
 
         <!-- Botón Generador de Planeamiento con IA -->
         <div class="art-bar" id="openPlannerBtn" style="border-color: var(--neon-cyan); box-shadow: 0 0 20px rgba(0, 250, 218, 0.15); margin-top: 20px;">
@@ -671,8 +690,9 @@
           </div>
           <div class="art-bar-content">
             <h3 style="color: var(--neon-cyan);">Generador de Planeamientos IA</h3>
-            <p>Diseña clases creativas para secundaria basadas en el catálogo MEP con el formato oficial del 2026 usando la asistencia de Gemini.</p>
+            <p>Diseña clases creativas para Primaria y Secundaria basadas en el catálogo MEP con el formato oficial del 2026 usando la asistencia de Gemini.</p>
           </div>
+
           <div class="art-bar-arrow" style="color: var(--neon-cyan);">✨</div>
         </div>
 
@@ -745,12 +765,23 @@
           
           <label class="planner-label">Nivel Educativo</label>
           <select id="plNivel" class="planner-input">
-            <option value="7mo">Séptimo Año</option>
-            <option value="8vo">Octavo Año</option>
-            <option value="9no">Noveno Año</option>
-            <option value="10mo">Décimo Año</option>
-            <option value="11vo">Undécimo Año</option>
+            <optgroup label="Escuela (Primaria)" style="background: #000;">
+              <option value="1°">1° Año</option>
+              <option value="2°">2° Año</option>
+              <option value="3°">3° Año</option>
+              <option value="4°">4° Año</option>
+              <option value="5°">5° Año</option>
+              <option value="6°">6° Año</option>
+            </optgroup>
+            <optgroup label="Colegio (Secundaria)" style="background: #000;">
+              <option value="7°">7° Año</option>
+              <option value="8°">8° Año</option>
+              <option value="9°">9° Año</option>
+              <option value="10°">10° Año</option>
+              <option value="11°">11° Año</option>
+            </optgroup>
           </select>
+
 
           <label class="planner-label">Tema Extraído del MEP</label>
           <input type="text" id="plTema" class="planner-input" placeholder="Ej: Teoría del Color, Corrientes Abstractas...">
