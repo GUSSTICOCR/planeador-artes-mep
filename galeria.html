@@ -1197,33 +1197,51 @@
     };
 
     document.getElementById('btnCheckAccess').onclick = async () => {
-      const email = userEmailInput.value.trim();
-      if(!email) { alert("Ingresa tu correo"); return; }
+      const rawEmail = userEmailInput.value.trim(); // Borra espacios al inicio y final
+      if(!rawEmail) { alert("⚠️ Por favor, ingresa tu correo electrónico."); return; }
       
+      const email = rawEmail.toLowerCase();
       userEmail = email;
-      localStorage.setItem('mep_user_email', email.toLowerCase());
+      localStorage.setItem('mep_user_email', email);
       
-      const resp = await fetch('/api/check-user-access', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: userEmail })
-      });
-      const data = await resp.json();
-      
-      if(data.hasAccess) {
-        payModal.classList.remove('show');
-        await loadProfileFromServer(userEmail);
-        if (!isProfileComplete()) {
-          openProfileModal(() => { plannerModal.classList.add('show'); });
+      // Mostrar estado de carga
+      const originalText = document.getElementById('btnCheckAccess').innerText;
+      document.getElementById('btnCheckAccess').innerText = "⏳ Verificando en la nube...";
+      document.getElementById('btnCheckAccess').disabled = true;
+
+      try {
+        const resp = await fetch('/api/check-user-access', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: userEmail })
+        });
+        const data = await resp.json();
+        
+        if(data.hasAccess) {
+          payModal.classList.remove('show');
+          await loadProfileFromServer(userEmail);
+          if (!isProfileComplete()) {
+            openProfileModal(() => { plannerModal.classList.add('show'); });
+          } else {
+            plannerModal.classList.add('show');
+          }
         } else {
-          plannerModal.classList.add('show');
+          // Restaurar botón si no hay acceso
+          document.getElementById('btnCheckAccess').innerText = originalText;
+          document.getElementById('btnCheckAccess').disabled = false;
+
+          if(data.expired) {
+            document.getElementById('payModalMsg').innerHTML = "<span style='color:var(--neon-magenta);'>¡Tu acceso ha vencido!</span><br>Paga la renovación para seguir usando el creador otros 3 meses.";
+          } else {
+            alert("❌ Correo no registrado. Asegúrate de que sea el mismo del comprobante SINPE.");
+          }
+          document.getElementById('checkoutSection').style.display = "block";
+          document.getElementById('idSection').style.opacity = "0.5";
         }
-      } else {
-        if(data.expired) {
-          document.getElementById('payModalMsg').innerHTML = "<span style='color:var(--neon-magenta);'>¡Tu acceso ha vencido!</span><br>Paga la renovación para seguir usando el creador otros 3 meses.";
-        }
-        document.getElementById('checkoutSection').style.display = "block";
-        document.getElementById('idSection').style.opacity = "0.5";
+      } catch (err) {
+        document.getElementById('btnCheckAccess').innerText = originalText;
+        document.getElementById('btnCheckAccess').disabled = false;
+        alert("⚠️ Error de conexión. Revisa tu internet o espera 20 segundos a que el servidor de Render despierte.");
       }
     };
 
