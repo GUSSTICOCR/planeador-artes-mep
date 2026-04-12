@@ -128,6 +128,11 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'galeria.html'));
 });
 
+// Ruta segura para el documento de Primaria, saltando problemas de espacios en el servidor Linux
+app.get('/programa-primaria.pdf', (req, res) => {
+  res.sendFile(path.join(__dirname, 'planeamientos primero y segundo siclo PRIMARIA', 'aplasticas1y2ciclo.pdf'));
+});
+
 // Endpoint para verificar si un usuario ya pagó y si su acceso sigue vigente
 app.post('/api/check-user-access', async (req, res) => {
   const { email } = req.body;
