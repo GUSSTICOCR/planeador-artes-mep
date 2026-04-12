@@ -287,7 +287,7 @@ async function loadMEPContent(isPrimary = false) {
   if (!isPrimary && mepSecondaryCache) return mepSecondaryCache;
 
   const fileName = isPrimary 
-    ? path.join(__dirname, 'programa_mep_primaria.pdf') 
+    ? path.join(__dirname, 'progama_mep_primaria.pdf.pdf') 
     : path.join(__dirname, 'programa_estudios_artes_plasticas_mep.pdf');
   
   try {
