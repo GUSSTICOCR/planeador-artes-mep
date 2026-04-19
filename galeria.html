@@ -915,7 +915,7 @@
   <div class="pay-modal" id="payModal">
     <div class="pay-modal-content">
       <h2 style="color: var(--neon-cyan);">Acceso al Generador</h2>
-      <p id="payModalMsg">Obtén acceso ilimitado para crear planeamientos oficiales MEP durante **3 meses (90 días)**.</p>
+      <p id="payModalMsg">Obtén acceso ilimitado para crear planeamientos oficiales MEP durante **2 meses (60 días)**.</p>
       
       <div id="idSection">
         <label class="planner-label">Tu Correo Electrónico</label>
@@ -926,7 +926,7 @@
       <div id="checkoutSection" style="display: none;">
         <div style="background: rgba(0,250,218,0.05); padding: 20px; border-radius: 15px; border: 1px dashed var(--neon-cyan); margin-top: 20px;">
           <h3 style="color: #fff; margin: 0 0 10px 0;">Paga vía SINPE Móvil</h3>
-          <p style="font-size: 1.1rem; color: var(--neon-cyan); font-weight: bold; margin: 5px 0;">₡4.000 colones ($7.99)</p>
+          <p style="font-size: 1.1rem; color: var(--neon-cyan); font-weight: bold; margin: 5px 0;">₡10.000 colones ($19.99)</p>
           <p style="font-size: 0.9rem; color: #ccc; margin: 5px 0;">Número: <strong>6069-2114</strong></p>
           <p style="font-size: 0.9rem; color: #ccc; margin: 5px 0;">A nombre de: <strong>Allan Duarte</strong></p>
         </div>
@@ -1217,7 +1217,7 @@
           }
         } else {
           if(data.expired) {
-            document.getElementById('payModalMsg').innerHTML = "<span style='color:var(--neon-magenta);'>¡Tu acceso ha vencido!</span><br>Paga la renovación para seguir usando el creador otros 3 meses.";
+            document.getElementById('payModalMsg').innerHTML = "<span style='color:var(--neon-magenta);'>¡Tu acceso ha vencido!</span><br>Paga la renovación para seguir usando el creador otros 2 meses.";
           }
           payModal.classList.add('show');
           document.getElementById('checkoutSection').style.display = "block";
@@ -1262,7 +1262,7 @@
           document.getElementById('btnCheckAccess').disabled = false;
 
           if(data.expired) {
-            document.getElementById('payModalMsg').innerHTML = "<span style='color:var(--neon-magenta);'>¡Tu acceso ha vencido!</span><br>Paga la renovación para seguir usando el creador otros 3 meses.";
+            document.getElementById('payModalMsg').innerHTML = "<span style='color:var(--neon-magenta);'>¡Tu acceso ha vencido!</span><br>Paga la renovación para seguir usando el creador otros 2 meses.";
           } else {
             alert("❌ Correo no registrado. Asegúrate de que sea el mismo del comprobante SINPE.");
           }

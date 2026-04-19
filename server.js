@@ -32,7 +32,7 @@ function getPaidUsers() {
 function markAsPaid(email) {
   const users = getPaidUsers();
   const expiresAt = new Date();
-  expiresAt.setDate(expiresAt.getDate() + 90); // 90 días de acceso
+  expiresAt.setDate(expiresAt.getDate() + 60); // 60 días de acceso
   
   const existingUserIndex = users.findIndex(u => u.email === email.toLowerCase());
   if (existingUserIndex > -1) {
@@ -110,11 +110,11 @@ function checkAccess(req, res, next) {
     if (now < expiry) {
       return next(); // Acceso vigente
     } else {
-      return res.status(403).json({ error: 'Tu acceso por 3 meses ha vencido. Por favor, renueva tu suscripción.' });
+      return res.status(403).json({ error: 'Tu acceso por 2 meses ha vencido. Por favor, renueva tu suscripción.' });
     }
   }
   
-  res.status(403).json({ error: 'Acceso denegado. Debes adquirir el acceso por 3 meses.' });
+  res.status(403).json({ error: 'Acceso denegado. Debes adquirir el acceso por 2 meses.' });
 }
 
 // Servir archivos estáticos
